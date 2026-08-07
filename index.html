@@ -52,7 +52,9 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg-main); color: var(--text-main); padding-bottom: 2.5rem; -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
+    
+    /* PADDING BOTTOM DITAMBAHKAN AGAR KONTEN TIDAK TERTUTUP TAB BAR */
+    body { background-color: var(--bg-main); color: var(--text-main); padding-bottom: 5.5rem; -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
 
     .app-viewport {
       max-width: 480px;
@@ -415,6 +417,61 @@
     /* CHART CONTAINER */
     .chart-box { position: relative; width: 100%; height: 230px; margin-top: 0.5rem; }
     .status-text { font-size: 0.7rem; text-align: center; color: var(--text-muted); margin-top: 6px; font-style: italic; }
+    
+    /* BOTTOM NAVIGATION BAR */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      background: #0b0f19;
+      border-top: 1px solid var(--emerald-border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0.5rem 0 0.8rem 0;
+      z-index: 1000;
+      box-shadow: 0 -5px 25px rgba(0,0,0,0.5);
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.65rem;
+      font-weight: 600;
+      gap: 4px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      flex: 1;
+      transition: color 0.2s;
+    }
+    .nav-item i { font-size: 1.1rem; margin-bottom: 2px;}
+    .nav-item:hover, .nav-item:active { color: var(--emerald); }
+    .nav-fab {
+      width: 55px;
+      height: 55px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 1.6rem;
+      box-shadow: var(--shadow-green);
+      margin-top: -25px;
+      border: 5px solid var(--bg-main);
+      cursor: pointer;
+      transition: transform 0.2s;
+      flex-shrink: 0;
+    }
+    .nav-fab:active { transform: scale(0.9); }
   </style>
 </head>
 <body>
@@ -592,43 +649,7 @@
         <p class="status-text" id="syncStatus">Data lokal loaded. Tekan "Load Data" untuk sinkronisasi cloud.</p>
       </section>
 
-      <!-- 2. TOMBOL BUKA MODAL INPUT TRANSAKSI -->
-      <button onclick="openTransactionModal()" class="btn" style="background: var(--card-bg); border: 1px solid var(--emerald-border); color: var(--emerald); font-weight: 800; justify-content: center; padding: 0.95rem 1rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-green);">
-        <span style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem;"><i class="fa-solid fa-circle-plus"></i> Input Transaksi Baru</span>
-      </button>
-
-      <!-- 3. BAGIAN RINCIAN & TOMBOL TABUNGAN, HUTANG, PIUTANG DI ATAS KEUANGAN HARIAN -->
-      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-        
-        <!-- Baris Tombol Tabungan, Hutang, Piutang -->
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
-          <button onclick="openDataModal('tabungan')" class="btn btn-violet" style="font-size: 0.72rem; padding: 0.75rem 0.4rem;">
-            <i class="fa-solid fa-piggy-bank"></i> Tabungan
-          </button>
-          <button onclick="openDataModal('hutang')" class="btn btn-amber" style="font-size: 0.72rem; padding: 0.75rem 0.4rem;">
-            <i class="fa-solid fa-hand-holding-dollar"></i> Hutang
-          </button>
-          <button onclick="openDataModal('piutang')" class="btn btn-sky" style="font-size: 0.72rem; padding: 0.75rem 0.4rem;">
-            <i class="fa-solid fa-comments-dollar"></i> Piutang
-          </button>
-        </div>
-
-        <!-- CARD KEUANGAN HARIAN -->
-        <section id="cardKeuanganHarian" class="cat-card cat-pemasukan">
-          <div class="card-header" style="margin-bottom: 0.5rem;">
-            <span class="cat-title"><i class="fa-solid fa-calendar-days"></i> Keuangan Harian (Bulan Ini)</span>
-          </div>
-          <div id="dailyFinanceContainer" style="display: flex; flex-direction: column; gap: 6px;">
-            <div style="text-align: center; color: var(--text-muted); padding: 1rem; font-style: italic;">Tidak ada data transaksi.</div>
-          </div>
-          <button id="btnToggleDailyFinance" class="btn btn-dark" style="margin-top: 0.8rem; display: none;" onclick="toggleDailyFinanceExpansion()">
-            <i class="fa-solid fa-chevron-down"></i> Lihat Selengkapnya
-          </button>
-        </section>
-
-      </div>
-
-      <!-- 4. GRAFIK KEUANGAN -->
+      <!-- 2. GRAFIK KEUANGAN (Dipindahkan ke atas untuk merapikan halaman) -->
       <section class="card">
         <div class="card-title-text"><i class="fa-solid fa-chart-pie"></i> Visualisasi Grafik (%)</div>
         <div class="chart-box">
@@ -637,7 +658,33 @@
       </section>
 
     </main>
+    
+    <!-- BOTTOM NAVIGATION MENU (MENU BAWAH) -->
+    <nav class="bottom-nav">
+      <button class="nav-item" onclick="openHarianModal()"><i class="fa-solid fa-calendar-days"></i> Harian</button>
+      <button class="nav-item" onclick="openDataModal('tabungan')"><i class="fa-solid fa-piggy-bank"></i> Tabung</button>
+      <div class="nav-fab" onclick="openTransactionModal()"><i class="fa-solid fa-plus"></i></div>
+      <button class="nav-item" onclick="openDataModal('hutang')"><i class="fa-solid fa-hand-holding-dollar"></i> Hutang</button>
+      <button class="nav-item" onclick="openDataModal('piutang')"><i class="fa-solid fa-comments-dollar"></i> Piutang</button>
+    </nav>
 
+  </div>
+
+  <!-- MODAL LIST KEUANGAN HARIAN (Sekarang dipanggil dari Tab Bar) -->
+  <div id="dailyListModal" class="modal-backdrop" onclick="closeHarianModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="card-header" style="margin-bottom: 0;">
+        <span class="cat-title" style="color: #34d399; font-size: 0.92rem;">
+          <i class="fa-solid fa-calendar-days"></i> List Keuangan Harian
+        </span>
+        <button type="button" onclick="closeHarianModal()" class="btn-remove" style="font-size: 1.2rem; color: var(--text-muted);">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="dailyFinanceContainerModal" style="display: flex; flex-direction: column; gap: 6px; max-height: 60vh; overflow-y: auto; padding-right: 4px;">
+        <!-- Data Harian akan dimasukkan ke sini oleh JavaScript -->
+      </div>
+    </div>
   </div>
 
   <!-- MODAL INPUT TRANSAKSI BARU -->
@@ -757,7 +804,6 @@
 
     let dbData = [];
     let chartInstance = null;
-    let expansionState = { dailyFinance: false };
 
     if (typeof ChartDataLabels !== 'undefined') {
       Chart.register(ChartDataLabels);
@@ -786,6 +832,7 @@
       }
     });
     
+    // FUNGSI BUKA/TUTUP MODAL INPUT TRANSAKSI
     function openTransactionModal() {
       document.getElementById("transactionModal").classList.add("active");
       document.body.style.overflow = "hidden";
@@ -797,9 +844,16 @@
       document.body.style.overflow = "";
     }
 
-    function toggleDailyFinanceExpansion() {
-      expansionState.dailyFinance = !expansionState.dailyFinance;
-      renderDailyFinanceList();
+    // FUNGSI BUKA/TUTUP MODAL LIST HARIAN DARI TAB BAR
+    function openHarianModal() {
+      document.getElementById("dailyListModal").classList.add("active");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeHarianModal(event) {
+      if (event && event.target !== document.getElementById("dailyListModal")) return;
+      document.getElementById("dailyListModal").classList.remove("active");
+      document.body.style.overflow = "";
     }
 
     /* MODAL DATA (TABUNGAN, HUTANG, PIUTANG) */
@@ -1132,14 +1186,13 @@
       try {
         const draftData = draftStr ? JSON.parse(draftStr) : {};
         categories.forEach(kat => {
-          if (draftData[kat]?.length > 0) {
+          // HANYA MASUKKAN DATA JIKA ADA DI DRAFT, JIKA TIDAK BIARKAN KOSONG
+          if (draftData[kat] && draftData[kat].length > 0) {
             draftData[kat].forEach(item => addInputRow(kat, item));
-          } else {
-            addInputRow(kat);
           }
         });
       } catch(e) {
-        categories.forEach(kat => addInputRow(kat));
+        // Biarkan kosong jika ada error
       }
     }
 
@@ -1373,8 +1426,8 @@
           localStorage.removeItem(DRAFT_STORAGE_KEY);
           
           categories.forEach(kat => {
-            document.getElementById(`container-${kat}`).innerHTML = "";
-            addInputRow(kat); 
+            document.getElementById(`container-${kat}`).innerHTML = ""; 
+            // Fungsi addInputRow(kat) tidak dipanggil otomatis lagi agar kosong
           });
 
           closeTransactionModal();
@@ -1401,10 +1454,10 @@
       renderMilestones();
     }
 
+    // MODIFIKASI: Render ke dalam modal "dailyListModal" dan tampilkan semua data tanpa disembunyikan (scrollable)
     function renderDailyFinanceList() {
       const selectedMonth = document.getElementById("filterMonth").value;
-      const container = document.getElementById("dailyFinanceContainer");
-      const btnToggle = document.getElementById("btnToggleDailyFinance");
+      const container = document.getElementById("dailyFinanceContainerModal");
 
       const dailyMap = {};
 
@@ -1428,21 +1481,10 @@
 
       if (dates.length === 0) {
         container.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 1rem; font-style: italic;">Tidak ada data transaksi bulan ini.</div>`;
-        btnToggle.style.display = "none";
         return;
       }
 
-      const isExp = expansionState.dailyFinance;
-      const displayDates = dates.length > 5 && !isExp ? dates.slice(0, 5) : dates;
-
-      if (dates.length > 5) {
-        btnToggle.style.display = "flex";
-        btnToggle.innerHTML = `<i class="fa-solid fa-chevron-${isExp ? 'up' : 'down'}"></i> ${isExp ? 'Sembunyikan' : 'Lihat Selengkapnya'}`;
-      } else {
-        btnToggle.style.display = "none";
-      }
-
-      container.innerHTML = displayDates.map(dateStr => {
+      container.innerHTML = dates.map(dateStr => {
         const data = dailyMap[dateStr];
         const net = data.pem - data.peng - data.tabNet;
         const { dayName, formattedDate } = getIndonesianDayAndDate(dateStr);
@@ -1608,7 +1650,7 @@
     function closeDailyModal(event) {
       if (event && event.target !== document.getElementById("dailyModal")) return;
       document.getElementById("dailyModal").classList.remove("active");
-      document.body.style.overflow = "";
+      // Tidak mereset overflow hidden karena mungkin modal Harian List masih aktif
     }
 
     function renderMilestones() {
@@ -1823,7 +1865,6 @@
         iconElem.className = "fa-solid fa-wallet";
       }
 
-      // RENDER CHART (Disatukan tanpa padding/margin, dipisahkan warna saja)[span_1](start_span)[span_1](end_span)
       const ctx = document.getElementById('financialChart').getContext('2d');
       if (chartInstance) chartInstance.destroy();
 
@@ -1834,11 +1875,11 @@
           datasets: [{
             data: [totPem, totPeng, Math.abs(totTabNetBulanIni), totHutJtBulanIni, totPiuJtBulanIni],
             backgroundColor: [
-              '#10b981', // Emerald (Pemasukan)
-              '#f43f5e', // Rose (Pengeluaran)
-              '#8b5cf6', // Violet (Tabungan)
-              '#f59e0b', // Amber (Hutang JT)
-              '#0ea5e9'  // Sky (Piutang JT)
+              '#10b981', 
+              '#f43f5e', 
+              '#8b5cf6', 
+              '#f59e0b', 
+              '#0ea5e9'  
             ],
             borderWidth: 0,
             borderRadius: 0,

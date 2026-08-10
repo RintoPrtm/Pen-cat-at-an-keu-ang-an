@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Financial Tracker Mobile - Dark Mode</title>
 
-  <!-- Chart.js, Chart.js DataLabels Plugin, & FontAwesome CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <!-- FontAwesome CDN -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
@@ -419,8 +417,6 @@
     .date-text { font-size: 0.65rem; color: var(--text-muted); display: block; }
     .jt-text { font-size: 0.65rem; font-weight: 700; display: block; }
 
-    /* CHART CONTAINER */
-    .chart-box { position: relative; width: 100%; height: 230px; margin-top: 0.5rem; }
     .status-text { font-size: 0.7rem; text-align: center; color: var(--text-muted); margin-top: 6px; font-style: italic; }
     
     /* BOTTOM NAVIGATION BAR */
@@ -680,14 +676,6 @@
         <p class="status-text" id="syncStatus">Data lokal loaded. Tekan "Load Data" untuk sinkronisasi cloud.</p>
       </section>
 
-      <!-- 2. GRAFIK KEUANGAN -->
-      <section class="card">
-        <div class="card-title-text"><i class="fa-solid fa-chart-pie"></i> Visualisasi Grafik (%)</div>
-        <div class="chart-box">
-          <canvas id="financialChart"></canvas>
-        </div>
-      </section>
-
     </main>
     
     <!-- BOTTOM NAVIGATION MENU -->
@@ -851,16 +839,55 @@
     </div>
   </div>
 
+  <!-- MODAL ANIMASI LOADING -->
+  <div id="loadingModal" class="modal-backdrop">
+    <div class="modal-content" style="align-items: center; text-align: center; padding: 2rem; max-width: 300px;">
+      <div style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;">
+        <i class="fa-solid fa-circle-notch fa-spin"></i>
+      </div>
+      <div id="loadingText" style="font-size: 0.9rem; font-weight: 700; color: var(--text-main);">Memproses data...</div>
+    </div>
+  </div>
+
+  <!-- MODAL SUKSES (BERHASIL) -->
+  <div id="successModal" class="modal-backdrop" onclick="closeSuccessModal(event)">
+    <div class="modal-content" style="align-items: center; text-align: center; padding: 1.5rem; max-width: 320px;" onclick="event.stopPropagation()">
+      <div style="font-size: 2.5rem; color: #10b981; margin-bottom: 0.75rem;">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <div id="successTitle" style="font-size: 1rem; font-weight: 800; color: #34d399; margin-bottom: 0.5rem;">Berhasil!</div>
+      <div id="successMessage" style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 1.25rem;">Aksi berhasil dilakukan.</div>
+      <button onclick="closeSuccessModal()" class="btn btn-emerald" style="width: 100%;">OK</button>
+    </div>
+  </div>
+
+  <!-- MODAL KONFIRMASI TINDAKAN -->
+  <div id="confirmModal" class="modal-backdrop" onclick="closeConfirmModal(false)">
+    <div class="modal-content" style="max-width: 360px;" onclick="event.stopPropagation()">
+      <div class="card-header" style="margin-bottom: 0;">
+        <span class="cat-title" id="confirmModalTitle" style="color: #fbbf24; font-size: 0.92rem;">
+          <i class="fa-solid fa-triangle-exclamation"></i> Konfirmasi Tindakan
+        </span>
+        <button type="button" onclick="closeConfirmModal(false)" class="btn-remove" style="font-size: 1.2rem; color: var(--text-muted);">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="confirmModalMessage" style="font-size: 0.8rem; color: var(--text-main); line-height: 1.4; padding: 0.5rem 0;">
+        Apakah Anda yakin ingin melanjutkan tindakan ini?
+      </div>
+      <div style="display: flex; gap: 8px; margin-top: 0.5rem;">
+        <button type="button" onclick="closeConfirmModal(false)" class="btn btn-dark" style="flex: 1;">Batal</button>
+        <button type="button" id="confirmModalBtnYes" class="btn btn-emerald" style="flex: 1;">Ya, Lanjutkan</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const SHEET_API_URL = "https://sheetdb.io/api/v1/hsoliss420awl";
     const DRAFT_STORAGE_KEY = "financial_inputs_draft_v4"; 
 
     let dbData = [];
-    let chartInstance = null;
-
-    if (typeof ChartDataLabels !== 'undefined') {
-      Chart.register(ChartDataLabels);
-    }
+    let confirmCallback = null;
 
     document.addEventListener("DOMContentLoaded", () => {
       const now = new Date();
@@ -883,6 +910,45 @@
       if (e.target.closest('.input-group')) {
         saveDraftInputs();
       }
+    });
+
+    /* ANIMATION & MODAL HELPERS */
+    function showLoading(text = "Memproses...") {
+      document.getElementById("loadingText").innerText = text;
+      document.getElementById("loadingModal").classList.add("active");
+    }
+
+    function hideLoading() {
+      document.getElementById("loadingModal").classList.remove("active");
+    }
+
+    function showSuccessModal(message) {
+      document.getElementById("successMessage").innerText = message;
+      document.getElementById("successModal").classList.add("active");
+    }
+
+    function closeSuccessModal(event) {
+      if (event && event.target !== document.getElementById("successModal") && event.target.tagName !== 'BUTTON') return;
+      document.getElementById("successModal").classList.remove("active");
+    }
+
+    function showConfirmModal(title, message, onYes) {
+      document.getElementById("confirmModalTitle").innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${title}`;
+      document.getElementById("confirmModalMessage").innerText = message;
+      confirmCallback = onYes;
+      document.getElementById("confirmModal").classList.add("active");
+    }
+
+    function closeConfirmModal(isYes) {
+      document.getElementById("confirmModal").classList.remove("active");
+      if (isYes && typeof confirmCallback === 'function') {
+        confirmCallback();
+      }
+      confirmCallback = null;
+    }
+
+    document.getElementById("confirmModalBtnYes").addEventListener("click", () => {
+      closeConfirmModal(true);
     });
     
     function openTransactionModal() {
@@ -1035,26 +1101,33 @@
         return;
       }
 
-      if (!confirm(`Konfirmasi menghapus ${checkedBoxes.length} pengeluaran pasti terpilih?`)) return;
+      showConfirmModal(
+        "Konfirmasi Hapus",
+        `Apakah Anda yakin ingin menghapus ${checkedBoxes.length} pengeluaran pasti terpilih?`,
+        async () => {
+          showLoading("Sedang menghapus data...");
+          const promises = [];
+          const idsToDelete = Array.from(checkedBoxes).map(cb => String(cb.value));
 
-      const promises = [];
-      const idsToDelete = Array.from(checkedBoxes).map(cb => String(cb.value));
+          for (const id of idsToDelete) {
+            promises.push(fetch(`${SHEET_API_URL}/id/${id}`, { method: "DELETE" }));
+            const idx = dbData.findIndex(i => String(i.id) === id);
+            if (idx !== -1) dbData.splice(idx, 1);
+          }
 
-      for (const id of idsToDelete) {
-        promises.push(fetch(`${SHEET_API_URL}/id/${id}`, { method: "DELETE" }));
-        const idx = dbData.findIndex(i => String(i.id) === id);
-        if (idx !== -1) dbData.splice(idx, 1);
-      }
-
-      try {
-        await Promise.all(promises);
-        localStorage.setItem("cached_financial_data_v5", JSON.stringify(dbData));
-        closeFixedExpenseModal();
-        renderAll();
-        alert(`✅ Berhasil menghapus ${checkedBoxes.length} pengeluaran pasti!`);
-      } catch (err) {
-        alert("Terjadi kesalahan saat menghapus data: " + err.message);
-      }
+          try {
+            await Promise.all(promises);
+            localStorage.setItem("cached_financial_data_v5", JSON.stringify(dbData));
+            closeFixedExpenseModal();
+            renderAll();
+            hideLoading();
+            showSuccessModal("Menghapus pengeluaran pasti berhasil!");
+          } catch (err) {
+            hideLoading();
+            alert("Terjadi kesalahan saat menghapus data: " + err.message);
+          }
+        }
+      );
     }
 
     /* MODAL DATA (TABUNGAN, HUTANG, PIUTANG) */
@@ -1288,75 +1361,82 @@
       }
 
       const labelName = categoryType === 'hutang' ? 'pembayaran hutang' : 'penerimaan piutang';
-      if (!confirm(`Konfirmasi ${labelName} untuk ${checkedBoxes.length} item terpilih?`)) return;
+      showConfirmModal(
+        "Konfirmasi Tindakan",
+        `Apakah Anda yakin ingin memproses ${labelName} untuk ${checkedBoxes.length} item terpilih?`,
+        async () => {
+          showLoading("Sedang memproses pembayaran...");
+          const todayDate = new Date();
+          todayDate.setMinutes(todayDate.getMinutes() - todayDate.getTimezoneOffset());
+          const todayStr = todayDate.toISOString().slice(0, 10);
+          const nowTime = new Date();
+          const waktuStr = `${String(nowTime.getHours()).padStart(2, '0')}:${String(nowTime.getMinutes()).padStart(2, '0')}`;
 
-      const todayDate = new Date();
-      todayDate.setMinutes(todayDate.getMinutes() - todayDate.getTimezoneOffset());
-      const todayStr = todayDate.toISOString().slice(0, 10);
-      const nowTime = new Date();
-      const waktuStr = `${String(nowTime.getHours()).padStart(2, '0')}:${String(nowTime.getMinutes()).padStart(2, '0')}`;
+          const autoTransactions = [];
+          const promises = [];
 
-      const autoTransactions = [];
-      const promises = [];
+          for (const cb of checkedBoxes) {
+            const itemId = cb.value;
+            const itemIndex = dbData.findIndex(i => String(i.id) === String(itemId));
+            if (itemIndex === -1) continue;
 
-      for (const cb of checkedBoxes) {
-        const itemId = cb.value;
-        const itemIndex = dbData.findIndex(i => String(i.id) === String(itemId));
-        if (itemIndex === -1) continue;
+            let item = dbData[itemIndex];
+            let currentDibayar = getItemDibayar(item) + 1;
+            let totalTenor = Number(item.tenor) || 1;
+            let nextJt = getNextJatuhTempo(item.jatuh_tempo, 1);
+            let payNominal = Number(item.nominal) || 0;
 
-        let item = dbData[itemIndex];
-        let currentDibayar = getItemDibayar(item) + 1;
-        let totalTenor = Number(item.tenor) || 1;
-        let nextJt = getNextJatuhTempo(item.jatuh_tempo, 1);
-        let payNominal = Number(item.nominal) || 0;
+            const isHutang = item.kategori === 'hutang';
+            autoTransactions.push({
+              id: Date.now().toString() + Math.floor(Math.random() * 1000),
+              kategori: isHutang ? 'pengeluaran' : 'pemasukan',
+              keterangan: `${isHutang ? 'Bayar Hutang' : 'Terima Piutang'}: ${item.keterangan} (${currentDibayar}/${totalTenor})`,
+              nominal: payNominal,
+              tenor: 0,
+              dibayar: 0,
+              tanggal: todayStr,
+              jatuh_tempo: "",
+              waktu: waktuStr
+            });
 
-        const isHutang = item.kategori === 'hutang';
-        autoTransactions.push({
-          id: Date.now().toString() + Math.floor(Math.random() * 1000),
-          kategori: isHutang ? 'pengeluaran' : 'pemasukan',
-          keterangan: `${isHutang ? 'Bayar Hutang' : 'Terima Piutang'}: ${item.keterangan} (${currentDibayar}/${totalTenor})`,
-          nominal: payNominal,
-          tenor: 0,
-          dibayar: 0,
-          tanggal: todayStr,
-          jatuh_tempo: "",
-          waktu: waktuStr
-        });
+            if (currentDibayar >= totalTenor) {
+              promises.push(fetch(`${SHEET_API_URL}/id/${item.id}`, { method: "DELETE" }));
+              dbData.splice(itemIndex, 1);
+            } else {
+              item.dibayar = currentDibayar;
+              item.jatuh_tempo = nextJt;
+              promises.push(
+                fetch(`${SHEET_API_URL}/id/${item.id}`, {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ dibayar: currentDibayar, jatuh_tempo: nextJt })
+                })
+              );
+            }
+          }
 
-        if (currentDibayar >= totalTenor) {
-          promises.push(fetch(`${SHEET_API_URL}/id/${item.id}`, { method: "DELETE" }));
-          dbData.splice(itemIndex, 1);
-        } else {
-          item.dibayar = currentDibayar;
-          item.jatuh_tempo = nextJt;
-          promises.push(
-            fetch(`${SHEET_API_URL}/id/${item.id}`, {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ dibayar: currentDibayar, jatuh_tempo: nextJt })
-            })
-          );
+          try {
+            if (autoTransactions.length > 0) {
+              await fetch(SHEET_API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ data: autoTransactions })
+              });
+              dbData.push(...autoTransactions);
+            }
+
+            await Promise.all(promises);
+            localStorage.setItem("cached_financial_data_v5", JSON.stringify(dbData));
+            closeDebtPayModal();
+            renderAll();
+            hideLoading();
+            showSuccessModal("Proses pembayaran/penerimaan berhasil!");
+          } catch (err) {
+            hideLoading();
+            alert("Terjadi kesalahan sistem saat sinkronisasi: " + err.message);
+          }
         }
-      }
-
-      try {
-        if (autoTransactions.length > 0) {
-          await fetch(SHEET_API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ data: autoTransactions })
-          });
-          dbData.push(...autoTransactions);
-        }
-
-        await Promise.all(promises);
-        localStorage.setItem("cached_financial_data_v5", JSON.stringify(dbData));
-        closeDebtPayModal();
-        renderAll();
-        alert(`✅ Berhasil memproses ${labelName} untuk ${checkedBoxes.length} item!`);
-      } catch (err) {
-        alert("Terjadi kesalahan sistem saat sinkronisasi: " + err.message);
-      }
+      );
     }
 
     function saveDraftInputs() {
@@ -1549,6 +1629,7 @@
 
       icon.classList.add("fa-spin");
       status.innerText = "Mengunduh data dari Google Sheets...";
+      showLoading("Sedang load data dari Cloud...");
 
       try {
         const res = await fetch(SHEET_API_URL);
@@ -1559,9 +1640,13 @@
         
         status.innerText = "Tersinkronisasi dengan Google Sheets!";
         renderAll();
+        hideLoading();
+        showSuccessModal("Load data berhasil!");
       } catch (err) {
+        hideLoading();
         status.innerText = "Gagal mengambil data Cloud. Menampilkan data lokal.";
         console.error(err);
+        alert("Gagal mengambil data Cloud: " + err.message);
       } finally {
         icon.classList.remove("fa-spin");
       }
@@ -1611,6 +1696,7 @@
       btnSave.disabled = true;
       btnSave.style.opacity = "0.6";
       status.innerText = `Menyimpan ${newEntries.length} data ke Google Sheets...`;
+      showLoading("Sedang menyimpan data...");
 
       try {
         const res = await fetch(SHEET_API_URL, {
@@ -1631,11 +1717,13 @@
           closeTransactionModal();
           renderAll();
           status.innerText = `Berhasil menyimpan ${newEntries.length} data baru!`;
-          alert(`Berhasil menyimpan ${newEntries.length} transaksi ke Google Sheets!`);
+          hideLoading();
+          showSuccessModal("Menyimpan data berhasil!");
         } else {
           throw new Error(`Status ${res.status}: ${await res.text()}`);
         }
       } catch (err) {
+        hideLoading();
         alert("Gagal menyimpan ke SheetDB.\n\nDetail: " + err.message);
         status.innerText = "Gagal menyimpan data ke Cloud.";
       } finally {
@@ -1647,9 +1735,99 @@
     function renderAll() {
       renderSummaryAndValues();
       renderDailyFinanceList();
-      renderChartAndBanner();
       renderNextMonthProjection();
       renderMilestones();
+    }
+
+    function renderSummaryAndValues() {
+      const selectedMonth = document.getElementById("filterMonth").value;
+      const todayDateObj = new Date();
+      todayDateObj.setMinutes(todayDateObj.getMinutes() - todayDateObj.getTimezoneOffset());
+      const todayStr = todayDateObj.toISOString().slice(0, 10);
+
+      let bulananMasuk = 0, bulananKeluar = 0, bulananPasti = 0, bulananTabunganNet = 0;
+      let harianMasuk = 0, harianKeluar = 0, harianPasti = 0, harianTabunganNet = 0;
+      let totHutangJT = 0, totPiutangJT = 0, totalAkumulasiTabungan = 0;
+
+      dbData.forEach(item => {
+        const nom = Number(item.nominal) || 0;
+        const kat = item.kategori;
+        const tgl = item.tanggal?.trim() || '';
+        const jt = item.jatuh_tempo?.trim() || '';
+        const tipeTab = item.tipe_tabungan || 'tambah';
+        const tabVal = (tipeTab === 'tambah' ? nom : -nom);
+
+        if (kat === 'tabungan') {
+          totalAkumulasiTabungan += tabVal;
+        }
+
+        if (tgl.startsWith(selectedMonth)) {
+          if (kat === 'pemasukan') bulananMasuk += nom;
+          else if (kat === 'pengeluaran') bulananKeluar += nom;
+          else if (kat === 'tabungan') bulananTabunganNet += tabVal;
+        }
+
+        if (tgl === todayStr) {
+          if (kat === 'pemasukan') harianMasuk += nom;
+          else if (kat === 'pengeluaran') harianKeluar += nom;
+          else if (kat === 'tabungan') harianTabunganNet += tabVal;
+        }
+
+        if (kat === 'pengeluaran_pasti') {
+          bulananPasti += nom;
+          if (jt) {
+            const dayPart = jt.split('-')[2];
+            const fixedDateStr = `${selectedMonth}-${dayPart}`;
+            if (fixedDateStr === todayStr) {
+              harianPasti += nom;
+            }
+          }
+        }
+
+        if (kat === 'hutang' && jt.startsWith(selectedMonth) && getItemDibayar(item) < (Number(item.tenor) || 1)) {
+          totHutangJT += nom;
+        }
+        if (kat === 'piutang' && jt.startsWith(selectedMonth) && getItemDibayar(item) < (Number(item.tenor) || 1)) {
+          totPiutangJT += nom;
+        }
+      });
+
+      const bulananNet = bulananMasuk - bulananKeluar - bulananPasti - bulananTabunganNet;
+      const harianNet = harianMasuk - harianKeluar - harianPasti - harianTabunganNet;
+      const kasPribadi = bulananMasuk - bulananKeluar - bulananPasti - bulananTabunganNet - totHutangJT + totPiutangJT;
+
+      document.getElementById("netCalculated").innerText = `Rp ${kasPribadi.toLocaleString('id-ID')}`;
+      document.getElementById("totTabunganDisplay").innerText = `Rp ${totalAkumulasiTabungan.toLocaleString('id-ID')}`;
+      document.getElementById("totPengeluaranPastiDisplay").innerText = `Rp ${bulananPasti.toLocaleString('id-ID')}`;
+
+      document.getElementById("harianMasuk").innerText = `Rp ${harianMasuk.toLocaleString('id-ID')}`;
+      document.getElementById("harianKeluar").innerText = `Rp ${harianKeluar.toLocaleString('id-ID')}`;
+      document.getElementById("harianPasti").innerText = `Rp ${harianPasti.toLocaleString('id-ID')}`;
+      document.getElementById("harianTabungan").innerText = `Rp ${harianTabunganNet.toLocaleString('id-ID')}`;
+      document.getElementById("harianNet").innerText = `Rp ${harianNet.toLocaleString('id-ID')}`;
+      document.getElementById("harianNet").style.color = harianNet >= 0 ? '#34d399' : '#f87171';
+
+      document.getElementById("bulananMasuk").innerText = `Rp ${bulananMasuk.toLocaleString('id-ID')}`;
+      document.getElementById("bulananKeluar").innerText = `Rp ${bulananKeluar.toLocaleString('id-ID')}`;
+      document.getElementById("bulananPasti").innerText = `Rp ${bulananPasti.toLocaleString('id-ID')}`;
+      document.getElementById("bulananTabungan").innerText = `Rp ${bulananTabunganNet.toLocaleString('id-ID')}`;
+      document.getElementById("bulananNet").innerText = `Rp ${bulananNet.toLocaleString('id-ID')}`;
+      document.getElementById("bulananNet").style.color = bulananNet >= 0 ? '#34d399' : '#f87171';
+
+      document.getElementById("totHutang").innerText = `Rp ${totHutangJT.toLocaleString('id-ID')}`;
+      document.getElementById("totPiutang").innerText = `Rp ${totPiutangJT.toLocaleString('id-ID')}`;
+
+      const badge = document.getElementById("statusBadge");
+      if (kasPribadi > 0) {
+        badge.className = "status-badge badge-surplus";
+        badge.innerText = "Surplus";
+      } else if (kasPribadi === 0) {
+        badge.className = "status-badge badge-enough";
+        badge.innerText = "Cukup";
+      } else {
+        badge.className = "status-badge badge-over";
+        badge.innerText = "Defisit";
+      }
     }
 
     function renderDailyFinanceList() {
@@ -1667,7 +1845,7 @@
         if (tgl.startsWith(selectedMonth)) {
           if (tgl > todayStr) return;
           if (!dailyMap[tgl]) {
-            dailyMap[tgl] = { pem: 0, peng: 0, tabNet: 0 };
+            dailyMap[tgl] = { pem: 0, peng: 0, tabNet: 0, pasti: 0 };
           }
           const nom = Number(item.nominal) || 0;
           const kat = item.kategori;
@@ -1685,9 +1863,9 @@
           const tgl = `${selectedMonth}-${dayPart}`;
           if (tgl > todayStr) return;
           if (!dailyMap[tgl]) {
-            dailyMap[tgl] = { pem: 0, peng: 0, tabNet: 0 };
+            dailyMap[tgl] = { pem: 0, peng: 0, tabNet: 0, pasti: 0 };
           }
-          dailyMap[tgl].peng += Number(item.nominal) || 0;
+          dailyMap[tgl].pasti += Number(item.nominal) || 0;
         }
       });
 
@@ -1700,7 +1878,7 @@
 
       container.innerHTML = dates.map(dateStr => {
         const data = dailyMap[dateStr];
-        const net = data.pem - data.peng - data.tabNet;
+        const net = data.pem - data.peng - data.pasti - data.tabNet;
         const { dayName, formattedDate } = getIndonesianDayAndDate(dateStr);
         const netColor = net > 0 ? '#34d399' : (net < 0 ? '#f87171' : '#ffffff');
 
@@ -1727,10 +1905,9 @@
       const dayNum = dateStr.split('-')[2];
       const fixedOnThisDay = dbData.filter(i => i.kategori === 'pengeluaran_pasti' && i.jatuh_tempo && i.jatuh_tempo.split('-')[2] === dayNum);
 
-      let totPem = 0, totPeng = 0, totTabNet = 0;
+      let totPem = 0, totPeng = 0, totPasti = 0, totTabNet = 0;
       const pemItems = [];
       const pengItems = [];
-      const tabItems = [];
 
       dayItems.forEach(i => {
         const nom = Number(i.nominal) || 0;
@@ -1745,13 +1922,12 @@
           pengItems.push(i);
         } else if (kat === 'tabungan') {
           totTabNet += (tipeTab === 'tambah' ? nom : -nom);
-          tabItems.push(i);
         }
       });
 
       fixedOnThisDay.forEach(i => {
         const nom = Number(i.nominal) || 0;
-        totPeng += nom;
+        totPasti += nom;
         pengItems.push({
           keterangan: `[Pasti] ${i.keterangan}`,
           nominal: nom,
@@ -1759,6 +1935,7 @@
         });
       });
 
+      const totalKeluarSemua = totPeng + totPasti;
       const modalBody = document.getElementById("modalBody");
       
       modalBody.innerHTML = `
@@ -1769,7 +1946,7 @@
           </div>
           <div>
             <span style="font-size: 0.62rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase;">Total Keluar</span>
-            <span style="font-size: 0.88rem; font-weight: 800; color: #f87171;">Rp ${totPeng.toLocaleString('id-ID')}</span>
+            <span style="font-size: 0.88rem; font-weight: 800; color: #f87171;">Rp ${totalKeluarSemua.toLocaleString('id-ID')}</span>
           </div>
         </div>
 
@@ -1807,7 +1984,7 @@
         <div class="cat-card cat-pengeluaran" style="padding: 0.85rem;">
           <div class="cat-title" style="margin-bottom: 0.5rem; font-size: 0.8rem; justify-content: space-between;">
             <span><i class="fa-solid fa-circle-arrow-up"></i> Pengeluaran (Termasuk Pasti)</span>
-            <span style="color: #f87171;">Rp ${totPeng.toLocaleString('id-ID')}</span>
+            <span style="color: #f87171;">Rp ${totalKeluarSemua.toLocaleString('id-ID')}</span>
           </div>
           <div class="table-responsive">
             <table>
@@ -1874,67 +2051,19 @@
     }
 
     function renderNextMonthProjection() {
-      const selectedMonthStr = document.getElementById("filterMonth").value;
-      if (!selectedMonthStr) return;
+      const selectedMonth = document.getElementById("filterMonth").value;
+      if (!selectedMonth) return;
 
-      const [yearStr, monthStr] = selectedMonthStr.split('-');
-      let year = parseInt(yearStr, 10);
-      let month = parseInt(monthStr, 10) + 1;
-      if (month > 12) { month = 1; year += 1; }
-      const nextMonthStr = `${year}-${String(month).padStart(2, '0')}`;
-
-      const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-      document.getElementById("labelBulanBesok").innerText = `${monthNames[month - 1]} ${year}`;
-
-      let totHutangBesok = 0, totPiutangBesok = 0;
-      let totPemCurrent = 0, totPengCurrent = 0, totTabNetCurrent = 0, totHutJtCurrent = 0, totPiuJtCurrent = 0, totPengPasti = 0;
-
-      dbData.forEach(item => {
-        const nom = Number(item.nominal) || 0;
-        const kat = item.kategori;
-        const tgl = item.tanggal?.trim() || '';
-        const jt = item.jatuh_tempo?.trim() || '';
-        const tipeTab = item.tipe_tabungan || 'tambah';
-
-        if (kat === 'pengeluaran_pasti') totPengPasti += nom;
-        if (kat === 'pemasukan' && tgl.startsWith(selectedMonthStr)) totPemCurrent += nom;
-        if (kat === 'pengeluaran' && tgl.startsWith(selectedMonthStr)) totPengCurrent += nom;
-        if (kat === 'tabungan' && tgl.startsWith(selectedMonthStr)) {
-          totTabNetCurrent += (tipeTab === 'tambah' ? nom : -nom);
-        }
-        if (kat === 'hutang' && jt.startsWith(selectedMonthStr) && getItemDibayar(item) < (Number(item.tenor) || 1)) {
-          totHutJtCurrent += nom;
-        }
-        if (kat === 'piutang' && jt.startsWith(selectedMonthStr) && getItemDibayar(item) < (Number(item.tenor) || 1)) {
-          totPiuJtCurrent += nom;
-        }
-
-        if (jt.startsWith(nextMonthStr) && getItemDibayar(item) < (Number(item.tenor) || 1)) {
-          if (kat === 'hutang') totHutangBesok += nom;
-          else if (kat === 'piutang') totPiutangBesok += nom;
-        }
-      });
-
-      const kasPribadiCurrent = totPemCurrent - totPengCurrent - totPengPasti - totTabNetCurrent - totHutJtCurrent + totPiuJtCurrent;
-      const proyeksiBulanDepan = kasPribadiCurrent + totPiutangBesok - totHutangBesok - totPengPasti;
-
-      const currentKasElem = document.getElementById("nextMonthCurrentKas");
-      currentKasElem.innerText = `Rp ${kasPribadiCurrent.toLocaleString('id-ID')}`;
-      currentKasElem.style.color = kasPribadiCurrent > 0 ? "#34d399" : (kasPribadiCurrent < 0 ? "#f87171" : "#fff");
-
-      document.getElementById("nextMonthPengeluaranPasti").innerText = `Rp ${totPengPasti.toLocaleString('id-ID')}`;
-      document.getElementById("nextMonthHutang").innerText = `Rp ${totHutangBesok.toLocaleString('id-ID')}`;
-      document.getElementById("nextMonthPiutang").innerText = `Rp ${totPiutangBesok.toLocaleString('id-ID')}`;
+      const [yyyy, mm] = selectedMonth.split('-').map(Number);
+      const nextDate = new Date(yyyy, mm, 1);
+      const nextMonthStr = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}`;
       
-      const netElem = document.getElementById("nextMonthNet");
-      netElem.innerText = `Rp ${proyeksiBulanDepan.toLocaleString('id-ID')}`;
-      netElem.style.color = proyeksiBulanDepan > 0 ? "#34d399" : (proyeksiBulanDepan < 0 ? "#f87171" : "#ffffff");
-    }
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+      document.getElementById("labelBulanBesok").innerText = `${monthNames[nextDate.getMonth()]} ${nextDate.getFullYear()}`;
 
-    function renderSummaryAndValues() {
-      const selectedMonth = document.getElementById("filterMonth").value;
-      let totPem = 0, totPeng = 0, totPengPasti = 0, totTab = 0, totTabAmbil = 0;
-      let totHutangJt = 0, totPiutangJt = 0;
+      let currentKas = 0;
+      let bulananMasuk = 0, bulananKeluar = 0, bulananPasti = 0, bulananTabunganNet = 0;
+      let totHutangJT = 0, totPiutangJT = 0;
 
       dbData.forEach(item => {
         const nom = Number(item.nominal) || 0;
@@ -1942,164 +2071,42 @@
         const tgl = item.tanggal?.trim() || '';
         const jt = item.jatuh_tempo?.trim() || '';
         const tipeTab = item.tipe_tabungan || 'tambah';
+        const tabVal = (tipeTab === 'tambah' ? nom : -nom);
 
-        if (kat === 'pemasukan' && tgl.startsWith(selectedMonth)) totPem += nom;
-        if (kat === 'pengeluaran' && tgl.startsWith(selectedMonth)) totPeng += nom;
-        if (kat === 'pengeluaran_pasti') totPengPasti += nom;
-        if (kat === 'tabungan' && tgl.startsWith(selectedMonth)) {
-          if (tipeTab === 'tambah') totTab += nom;
-          else totTabAmbil += nom;
+        if (tgl.startsWith(selectedMonth)) {
+          if (kat === 'pemasukan') bulananMasuk += nom;
+          else if (kat === 'pengeluaran') bulananKeluar += nom;
+          else if (kat === 'tabungan') bulananTabunganNet += tabVal;
         }
-        if (kat === 'hutang' && jt.startsWith(selectedMonth) && getItemDibayar(item) < (Number(item.tenor) || 1)) {
-          totHutangJt += nom;
-        }
-        if (kat === 'piutang' && jt.startsWith(selectedMonth) && getItemDibayar(item) < (Number(item.tenor) || 1)) {
-          totPiutangJt += nom;
-        }
+        if (kat === 'pengeluaran_pasti') bulananPasti += nom;
+        if (kat === 'hutang' && jt.startsWith(selectedMonth) && getItemDibayar(item) < (Number(item.tenor) || 1)) totHutangJT += nom;
+        if (kat === 'piutang' && jt.startsWith(selectedMonth) && getItemDibayar(item) < (Number(item.tenor) || 1)) totPiutangJT += nom;
       });
 
-      const netKasPribadi = totPem - totPeng - totPengPasti - (totTab - totTabAmbil) - totHutangJt + totPiutangJt;
-      const netCalculated = document.getElementById("netCalculated");
-      netCalculated.innerText = `Rp ${netKasPribadi.toLocaleString('id-ID')}`;
-      netCalculated.style.color = netKasPribadi > 0 ? "#34d399" : (netKasPribadi < 0 ? "#f87171" : "#ffffff");
+      currentKas = bulananMasuk - bulananKeluar - bulananPasti - bulananTabunganNet - totHutangJT + totPiutangJT;
 
-      const badge = document.getElementById("statusBadge");
-      if (netKasPribadi > 0) {
-        badge.className = "status-badge badge-surplus";
-        badge.innerText = "Surplus";
-      } else if (netKasPribadi === 0) {
-        badge.className = "status-badge badge-enough";
-        badge.innerText = "Imbang";
-      } else {
-        badge.className = "status-badge badge-over";
-        badge.innerText = "Defisit";
-      }
-
-      document.getElementById("totTabunganDisplay").innerText = `Rp ${(totTab - totTabAmbil).toLocaleString('id-ID')}`;
-      document.getElementById("totPengeluaranPastiDisplay").innerText = `Rp ${totPengPasti.toLocaleString('id-ID')}`;
-      document.getElementById("totHutang").innerText = `Rp ${totHutangJt.toLocaleString('id-ID')}`;
-      document.getElementById("totPiutang").innerText = `Rp ${totPiutangJt.toLocaleString('id-ID')}`;
-
-      let harianMasuk = 0, harianKeluar = 0, harianPasti = 0, harianTabungan = 0;
-      let bulananMasuk = totPem, bulananKeluar = totPeng, bulananPasti = totPengPasti, bulananTabungan = (totTab - totTabAmbil);
-
-      const todayDateObj = new Date();
-      todayDateObj.setMinutes(todayDateObj.getMinutes() - todayDateObj.getTimezoneOffset());
-      const todayStr = todayDateObj.toISOString().slice(0, 10);
-      const dayNumToday = todayStr.split('-')[2];
+      let nextPengeluaranPasti = 0;
+      let nextHutangJT = 0;
+      let nextPiutangJT = 0;
 
       dbData.forEach(item => {
         const nom = Number(item.nominal) || 0;
         const kat = item.kategori;
-        const tgl = item.tanggal?.trim() || '';
-        const tipeTab = item.tipe_tabungan || 'tambah';
-
-        if (tgl === todayStr) {
-          if (kat === 'pemasukan') harianMasuk += nom;
-          else if (kat === 'pengeluaran') harianKeluar += nom;
-          else if (kat === 'tabungan') harianTabungan += (tipeTab === 'tambah' ? nom : -nom);
-        }
-      });
-
-      dbData.forEach(item => {
-        if (item.kategori === 'pengeluaran_pasti' && item.jatuh_tempo) {
-          const dayPart = item.jatuh_tempo.split('-')[2];
-          if (dayPart === dayNumToday) {
-            harianPasti += Number(item.nominal) || 0;
-          }
-        }
-      });
-
-      document.getElementById("harianMasuk").innerText = `Rp ${harianMasuk.toLocaleString('id-ID')}`;
-      document.getElementById("harianKeluar").innerText = `Rp ${harianKeluar.toLocaleString('id-ID')}`;
-      document.getElementById("harianPasti").innerText = `Rp ${harianPasti.toLocaleString('id-ID')}`;
-      document.getElementById("harianTabungan").innerText = `Rp ${harianTabungan.toLocaleString('id-ID')}`;
-      const harianNetVal = harianMasuk - harianKeluar - harianPasti - harianTabungan;
-      const harianNetEl = document.getElementById("harianNet");
-      harianNetEl.innerText = `Rp ${harianNetVal.toLocaleString('id-ID')}`;
-      harianNetEl.style.color = harianNetVal >= 0 ? "#34d399" : "#f87171";
-
-      document.getElementById("bulananMasuk").innerText = `Rp ${bulananMasuk.toLocaleString('id-ID')}`;
-      document.getElementById("bulananKeluar").innerText = `Rp ${bulananKeluar.toLocaleString('id-ID')}`;
-      document.getElementById("bulananPasti").innerText = `Rp ${bulananPasti.toLocaleString('id-ID')}`;
-      document.getElementById("bulananTabungan").innerText = `Rp ${bulananTabungan.toLocaleString('id-ID')}`;
-      const bulananNetVal = bulananMasuk - bulananKeluar - bulananPasti - bulananTabungan - totHutangJt + totPiutangJt;
-      const bulananNetEl = document.getElementById("bulananNet");
-      bulananNetEl.innerText = `Rp ${bulananNetVal.toLocaleString('id-ID')}`;
-      bulananNetEl.style.color = bulananNetVal >= 0 ? "#34d399" : "#f87171";
-    }
-
-    function renderChartAndBanner() {
-      const selectedMonth = document.getElementById("filterMonth").value;
-      let totPem = 0, totPeng = 0, totPengPasti = 0, totTab = 0, totTabAmbil = 0;
-      let totHutangJt = 0, totPiutangJt = 0;
-
-      dbData.forEach(item => {
-        const nom = Number(item.nominal) || 0;
-        const kat = item.kategori;
-        const tgl = item.tanggal?.trim() || '';
         const jt = item.jatuh_tempo?.trim() || '';
-        const tipeTab = item.tipe_tabungan || 'tambah';
 
-        if (kat === 'pemasukan' && tgl.startsWith(selectedMonth)) totPem += nom;
-        if (kat === 'pengeluaran' && tgl.startsWith(selectedMonth)) totPeng += nom;
-        if (kat === 'pengeluaran_pasti') totPengPasti += nom;
-        if (kat === 'tabungan' && tgl.startsWith(selectedMonth)) {
-          if (tipeTab === 'tambah') totTab += nom;
-          else totTabAmbil += nom;
-        }
-        if (kat === 'hutang' && jt.startsWith(selectedMonth) && getItemDibayar(item) < (Number(item.tenor) || 1)) {
-          totHutangJt += nom;
-        }
-        if (kat === 'piutang' && jt.startsWith(selectedMonth) && getItemDibayar(item) < (Number(item.tenor) || 1)) {
-          totPiutangJt += nom;
-        }
+        if (kat === 'pengeluaran_pasti') nextPengeluaranPasti += nom;
+        if (kat === 'hutang' && jt.startsWith(nextMonthStr) && getItemDibayar(item) < (Number(item.tenor) || 1)) nextHutangJT += nom;
+        if (kat === 'piutang' && jt.startsWith(nextMonthStr) && getItemDibayar(item) < (Number(item.tenor) || 1)) nextPiutangJT += nom;
       });
 
-      const netTabungan = totTab - totTabAmbil;
+      const projectedKas = currentKas - nextPengeluaranPasti - nextHutangJT + nextPiutangJT;
 
-      const ctx = document.getElementById('financialChart').getContext('2d');
-      if (chartInstance) {
-        chartInstance.destroy();
-      }
-
-      // Menambahkan informasi piutang yang jatuh tempo bulan ini ke dalam chart[span_1](start_span)[span_1](end_span)
-      chartInstance = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: ['Pemasukan', 'Pengeluaran', 'Pengeluaran Pasti', 'Tabungan', 'Hutang JT', 'Piutang JT'],
-          datasets: [{
-            data: [totPem, totPeng, totPengPasti, netTabungan, totHutangJt, totPiutangJt],
-            backgroundColor: ['#10b981', '#f43f5e', '#e11d48', '#8b5cf6', '#f59e0b', '#0ea5e9'],
-            borderWidth: 1,
-            borderColor: '#131b2e'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'bottom',
-              labels: {
-                color: '#94a3b8',
-                font: { size: 10 },
-                boxWidth: 12
-              }
-            },
-            datalabels: {
-              color: '#ffffff',
-              font: { weight: 'bold', size: 10 },
-              formatter: (value, ctx) => {
-                let sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                if (sum === 0) return '0%';
-                let percentage = (value * 100 / sum).toFixed(1) + "%";
-                return value > 0 ? percentage : '';
-              }
-            }
-          }
-        }
-      });
+      document.getElementById("nextMonthCurrentKas").innerText = `Rp ${currentKas.toLocaleString('id-ID')}`;
+      document.getElementById("nextMonthPengeluaranPasti").innerText = `Rp ${nextPengeluaranPasti.toLocaleString('id-ID')}`;
+      document.getElementById("nextMonthHutang").innerText = `Rp ${nextHutangJT.toLocaleString('id-ID')}`;
+      document.getElementById("nextMonthPiutang").innerText = `Rp ${nextPiutangJT.toLocaleString('id-ID')}`;
+      document.getElementById("nextMonthNet").innerText = `Rp ${projectedKas.toLocaleString('id-ID')}`;
+      document.getElementById("nextMonthNet").style.color = projectedKas >= 0 ? '#34d399' : '#f87171';
     }
   </script>
 </body>

@@ -899,6 +899,7 @@
       if (localCached) {
         dbData = JSON.parse(localCached);
         renderAll();
+        processAutoFixedExpenses();
         document.getElementById("syncStatus").innerText = "Menampilkan data lokal. Tekan 'Load Data' untuk sinkron Cloud.";
       } else {
         document.getElementById("syncStatus").innerText = "Belum ada data lokal. Tekan 'Load Data' untuk mengambil data.";
@@ -1387,6 +1388,7 @@
             let payNominal = Number(item.nominal) || 0;
 
             const isHutang = item.kategori === 'hutang';
+            // Req 6: Otomatis membuat input pengeluaran/pemasukan baru
             autoTransactions.push({
               id: Date.now().toString() + Math.floor(Math.random() * 1000),
               kategori: isHutang ? 'pengeluaran' : 'pemasukan',
@@ -1641,13 +1643,18 @@
         
         status.innerText = "Tersinkronisasi dengan Google Sheets!";
         renderAll();
+        
+        // Cek dan proses pengeluaran pasti otomatis setiap kali sync data
+        await processAutoFixedExpenses();
+
         hideLoading();
         showSuccessModal("Load data berhasil!");
 
-        // Non-aktifkan tombol load data jika berhasil
+        // Req 1: Non-aktifkan tombol load data jika berhasil
         btnSync.disabled = true;
         btnSync.style.opacity = "0.6";
         btnSync.style.cursor = "not-allowed";
+        btnSync.style.pointerEvents = "none";
       } catch (err) {
         hideLoading();
         status.innerText = "Gagal mengambil data Cloud. Menampilkan data lokal.";
@@ -1738,6 +1745,64 @@
       }
     }
 
+    // Req 5: Proses Otomatis Pengeluaran Pasti
+    async function processAutoFixedExpenses() {
+      const todayDateObj = new Date();
+      todayDateObj.setMinutes(todayDateObj.getMinutes() - todayDateObj.getTimezoneOffset());
+      const todayStr = todayDateObj.toISOString().slice(0, 10);
+      const currentMonthStr = todayStr.slice(0, 7);
+      const todayDay = parseInt(todayStr.slice(8, 10), 10);
+
+      const fixedExpenses = dbData.filter(i => i.kategori === 'pengeluaran_pasti');
+      const autoTransactions = [];
+
+      fixedExpenses.forEach(fixed => {
+        if (!fixed.jatuh_tempo) return;
+        const jtDay = parseInt(fixed.jatuh_tempo.split('-')[2], 10);
+        
+        if (jtDay <= todayDay) {
+          const autoKeterangan = `[Auto] ${fixed.keterangan}`;
+          // Cek apakah data bulan ini sudah terbuat
+          const alreadyExists = dbData.some(i => 
+             i.kategori === 'pengeluaran' && 
+             i.keterangan === autoKeterangan && 
+             i.tanggal && i.tanggal.startsWith(currentMonthStr)
+          );
+
+          if (!alreadyExists) {
+             const actualDateStr = `${currentMonthStr}-${String(jtDay).padStart(2, '0')}`;
+             autoTransactions.push({
+              id: Date.now().toString() + Math.floor(Math.random() * 1000) + autoTransactions.length,
+              kategori: 'pengeluaran',
+              keterangan: autoKeterangan,
+              nominal: Number(fixed.nominal),
+              tenor: 0,
+              dibayar: 0,
+              tanggal: actualDateStr,
+              jatuh_tempo: "",
+              tipe_tabungan: "",
+              waktu: "00:00"
+            });
+          }
+        }
+      });
+
+      if (autoTransactions.length > 0) {
+         try {
+            await fetch(SHEET_API_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ data: autoTransactions })
+            });
+            dbData.push(...autoTransactions);
+            localStorage.setItem("cached_financial_data_v5", JSON.stringify(dbData));
+            renderAll();
+         } catch (err) {
+            console.error("Gagal menyimpan auto pengeluaran pasti", err);
+         }
+      }
+    }
+
     function renderAll() {
       renderSummaryAndValues();
       renderDailyFinanceList();
@@ -1798,9 +1863,9 @@
         }
       });
 
-      const bulananNet = bulananMasuk - bulananKeluar - bulananPasti - bulananTabunganNet;
-      const harianNet = harianMasuk - harianKeluar - harianPasti - harianTabunganNet;
-      const kasPribadi = bulananMasuk - bulananKeluar - bulananPasti - bulananTabunganNet - totHutangJT + totPiutangJT;
+      const bulananNet = bulananMasuk - bulananKeluar - bulananTabunganNet;
+      const harianNet = harianMasuk - harianKeluar - harianTabunganNet;
+      const kasPribadi = bulananMasuk - bulananKeluar - bulananTabunganNet - totHutangJT + totPiutangJT;
 
       document.getElementById("netCalculated").innerText = `Rp ${kasPribadi.toLocaleString('id-ID')}`;
       document.getElementById("totTabunganDisplay").innerText = `Rp ${totalAkumulasiTabungan.toLocaleString('id-ID')}`;
@@ -1811,292 +1876,236 @@
       document.getElementById("harianPasti").innerText = `Rp ${harianPasti.toLocaleString('id-ID')}`;
       document.getElementById("harianTabungan").innerText = `Rp ${harianTabunganNet.toLocaleString('id-ID')}`;
       document.getElementById("harianNet").innerText = `Rp ${harianNet.toLocaleString('id-ID')}`;
-      document.getElementById("harianNet").style.color = harianNet >= 0 ? '#34d399' : '#f87171';
 
       document.getElementById("bulananMasuk").innerText = `Rp ${bulananMasuk.toLocaleString('id-ID')}`;
       document.getElementById("bulananKeluar").innerText = `Rp ${bulananKeluar.toLocaleString('id-ID')}`;
       document.getElementById("bulananPasti").innerText = `Rp ${bulananPasti.toLocaleString('id-ID')}`;
       document.getElementById("bulananTabungan").innerText = `Rp ${bulananTabunganNet.toLocaleString('id-ID')}`;
       document.getElementById("bulananNet").innerText = `Rp ${bulananNet.toLocaleString('id-ID')}`;
-      document.getElementById("bulananNet").style.color = bulananNet >= 0 ? '#34d399' : '#f87171';
+      
+      // Req 2: Desain Kas Pribadi ketika Defisit dan Surplus
+      const kasPribadiCard = document.getElementById("kasPribadiCard");
+      const kasPribadiTitle = document.getElementById("kasPribadiTitle");
+      const kasPribadiIcon = document.getElementById("kasPribadiIcon");
+      const netCalculated = document.getElementById("netCalculated");
+      const statusBadge = document.getElementById("statusBadge");
+
+      if (kasPribadi < 0) {
+        kasPribadiCard.style.background = "rgba(244, 63, 94, 0.1)";
+        kasPribadiCard.style.borderColor = "var(--rose-border)";
+        kasPribadiTitle.style.color = "#f87171";
+        kasPribadiIcon.style.color = "#f87171";
+        netCalculated.style.color = "#f87171";
+        statusBadge.className = "status-badge badge-over";
+        statusBadge.innerText = "DEFISIT";
+      } else {
+        kasPribadiCard.style.background = "rgba(16, 185, 129, 0.1)";
+        kasPribadiCard.style.borderColor = "var(--emerald-border)";
+        kasPribadiTitle.style.color = "#34d399";
+        kasPribadiIcon.style.color = "#34d399";
+        netCalculated.style.color = "#34d399";
+        statusBadge.className = "status-badge badge-surplus";
+        statusBadge.innerText = "SURPLUS";
+      }
 
       document.getElementById("totHutang").innerText = `Rp ${totHutangJT.toLocaleString('id-ID')}`;
       document.getElementById("totPiutang").innerText = `Rp ${totPiutangJT.toLocaleString('id-ID')}`;
-
-      const badge = document.getElementById("statusBadge");
-      const kasCard = document.getElementById("kasPribadiCard");
-      const kasTitle = document.getElementById("kasPribadiTitle");
-      const kasIcon = document.getElementById("kasPribadiIcon");
-      const kasAmount = document.getElementById("netCalculated");
-
-      if (kasPribadi > 0) {
-        badge.className = "status-badge badge-surplus";
-        badge.innerText = "Surplus";
-        kasCard.style.background = "rgba(16, 185, 129, 0.1)";
-        kasCard.style.borderColor = "var(--emerald-border)";
-        kasTitle.style.color = "#a7f3d0";
-        kasIcon.style.color = "#34d399";
-        kasAmount.style.color = "#34d399";
-      } else if (kasPribadi === 0) {
-        badge.className = "status-badge badge-enough";
-        badge.innerText = "Cukup";
-        kasCard.style.background = "rgba(245, 158, 11, 0.1)";
-        kasCard.style.borderColor = "var(--amber-border)";
-        kasTitle.style.color = "#fde68a";
-        kasIcon.style.color = "#fbbf24";
-        kasAmount.style.color = "#ffffff";
-      } else {
-        badge.className = "status-badge badge-over";
-        badge.innerText = "Defisit";
-        kasCard.style.background = "rgba(244, 63, 94, 0.15)";
-        kasCard.style.borderColor = "var(--rose-border)";
-        kasTitle.style.color = "#fca5a5";
-        kasIcon.style.color = "#f87171";
-        kasAmount.style.color = "#f87171";
-      }
     }
 
+    // Req 4: List Keuangan Harian berdasarkan Bulan, Tanggal & Detail Transaksi
     function renderDailyFinanceList() {
       const selectedMonth = document.getElementById("filterMonth").value;
       const container = document.getElementById("dailyFinanceContainerModal");
-
-      const todayDateObj = new Date();
-      todayDateObj.setMinutes(todayDateObj.getMinutes() - todayDateObj.getTimezoneOffset());
-      const todayStr = todayDateObj.toISOString().slice(0, 10);
-
-      const dailyMap = {};
-
+      
+      const datesSet = new Set();
       dbData.forEach(item => {
         const tgl = item.tanggal?.trim() || '';
-        if (tgl.startsWith(selectedMonth)) {
-          if (tgl > todayStr) return;
-          if (!dailyMap[tgl]) {
-            dailyMap[tgl] = { pem: 0, peng: 0, tabNet: 0, pasti: 0 };
-          }
-          const nom = Number(item.nominal) || 0;
-          const kat = item.kategori;
-          const tipeTab = item.tipe_tabungan || 'tambah';
-
-          if (kat === 'pemasukan') dailyMap[tgl].pem += nom;
-          else if (kat === 'pengeluaran') dailyMap[tgl].peng += nom;
-          else if (kat === 'tabungan') dailyMap[tgl].tabNet += (tipeTab === 'tambah' ? nom : -nom);
+        // Hanya tambahkan tanggal di bulan yang dipilih
+        if (tgl.startsWith(selectedMonth) && item.kategori !== 'pengeluaran_pasti' && item.kategori !== 'hutang' && item.kategori !== 'piutang') {
+            datesSet.add(tgl);
         }
       });
 
-      dbData.forEach(item => {
-        if (item.kategori === 'pengeluaran_pasti' && item.jatuh_tempo) {
-          const dayPart = item.jatuh_tempo.split('-')[2];
-          const tgl = `${selectedMonth}-${dayPart}`;
-          if (tgl > todayStr) return;
-          if (!dailyMap[tgl]) {
-            dailyMap[tgl] = { pem: 0, peng: 0, tabNet: 0, pasti: 0 };
-          }
-          dailyMap[tgl].pasti += Number(item.nominal) || 0;
-        }
-      });
-
-      const dates = Object.keys(dailyMap).sort((a, b) => b.localeCompare(a));
-
-      if (dates.length === 0) {
-        container.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 1rem; font-style: italic;">Tidak ada data transaksi bulan ini (atau tanggal transaksi melebihi hari ini).</div>`;
+      const datesArray = Array.from(datesSet).sort().reverse();
+      
+      if (datesArray.length === 0) {
+        container.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 0.75rem; padding: 1rem;">Tidak ada transaksi di bulan ini.</div>`;
         return;
       }
 
-      container.innerHTML = dates.map(dateStr => {
-        const data = dailyMap[dateStr];
-        const net = data.pem - data.peng - data.pasti - data.tabNet;
+      container.innerHTML = datesArray.map(dateStr => {
         const { dayName, formattedDate } = getIndonesianDayAndDate(dateStr);
-        const netColor = net > 0 ? '#34d399' : (net < 0 ? '#f87171' : '#ffffff');
+        let dailyNet = 0;
+        dbData.forEach(i => {
+           if(i.tanggal === dateStr) {
+               if(i.kategori === 'pemasukan') dailyNet += Number(i.nominal);
+               if(i.kategori === 'pengeluaran') dailyNet -= Number(i.nominal);
+           }
+        });
+        const color = dailyNet < 0 ? '#f87171' : '#34d399';
 
         return `
-          <div class="daily-item-row" onclick="openDailyModal('${dateStr}')">
+          <div class="daily-item-row" onclick="openDailyDetail('${dateStr}')">
             <div>
-              <div style="font-weight: 800; font-size: 0.8rem; color: #f8fafc;">${dayName}</div>
-              <div style="font-size: 0.65rem; color: var(--text-muted);"><i class="fa-regular fa-calendar"></i> ${formattedDate}</div>
+              <div style="font-weight: 700; color: var(--text-main); font-size: 0.75rem;">${formattedDate}</div>
+              <div style="font-size: 0.65rem; color: var(--text-muted);">${dayName}</div>
             </div>
-            <div style="text-align: right;">
-              <span style="font-size: 0.6rem; color: var(--text-muted); display: block; text-transform: uppercase; font-weight: 700;">Net</span>
-              <span style="font-weight: 800; font-size: 0.85rem; color: ${netColor};">Rp ${net.toLocaleString('id-ID')}</span>
+            <div style="font-weight: 800; color: ${color}; font-size: 0.75rem;">
+              <i class="fa-solid fa-chevron-right"></i>
             </div>
           </div>
         `;
       }).join('');
     }
 
-    function openDailyModal(dateStr) {
-      // Tutup modal list keuangan saat modal daftar transaksi muncul
+    function openDailyDetail(dateStr) {
       document.getElementById("dailyListModal").classList.remove("active");
+      
+      const modal = document.getElementById("dailyModal");
+      const titleElem = document.getElementById("modalTitle");
+      const bodyElem = document.getElementById("modalBody");
+      
+      const { formattedDate } = getIndonesianDayAndDate(dateStr);
+      titleElem.innerHTML = `<i class="fa-solid fa-calendar-day"></i> Transaksi: ${formattedDate}`;
 
-      const { dayName, formattedDate } = getIndonesianDayAndDate(dateStr);
-      document.getElementById("modalTitle").innerHTML = `<i class="fa-solid fa-calendar-day"></i> Rincian: ${dayName}, ${formattedDate}`;
+      const items = dbData.filter(i => i.tanggal === dateStr);
+      
+      const pemasukan = items.filter(i => i.kategori === 'pemasukan');
+      const pengeluaran = items.filter(i => i.kategori === 'pengeluaran');
+      const tabungan = items.filter(i => i.kategori === 'tabungan');
 
-      const dayItems = dbData.filter(i => (i.tanggal?.trim() || '') === dateStr);
-      const dayNum = dateStr.split('-')[2];
-      const fixedOnThisDay = dbData.filter(i => i.kategori === 'pengeluaran_pasti' && i.jatuh_tempo && i.jatuh_tempo.split('-')[2] === dayNum);
+      const sumNominal = (arr) => arr.reduce((sum, item) => sum + (Number(item.nominal) || 0), 0);
+      
+      const totPemasukan = sumNominal(pemasukan);
+      const totPengeluaran = sumNominal(pengeluaran);
+      const totTabungan = tabungan.reduce((sum, item) => item.tipe_tabungan === 'ambil' ? sum - (Number(item.nominal) || 0) : sum + (Number(item.nominal) || 0), 0);
 
-      const pemItems = dayItems.filter(i => i.kategori === 'pemasukan');
-      const pengItems = dayItems.filter(i => i.kategori === 'pengeluaran');
-      const tabItems = dayItems.filter(i => i.kategori === 'tabungan');
-      const pastiItems = fixedOnThisDay.map(i => ({
-        keterangan: i.keterangan,
-        nominal: Number(i.nominal) || 0
-      }));
-
-      const modalBody = document.getElementById("modalBody");
-      modalBody.innerHTML = `
-        <div style="display: flex; flex-direction: column; gap: 1rem; max-height: 60vh; overflow-y: auto; padding-right: 2px;">
-          <!-- Pemasukan -->
-          <div>
-            <div style="font-size: 0.75rem; font-weight: 800; color: #34d399; margin-bottom: 4px; text-transform: uppercase;"><i class="fa-solid fa-circle-arrow-down"></i> Pemasukan</div>
-            ${pemItems.length ? pemItems.map(i => `
-              <div style="display: flex; justify-content: space-between; background: #0b0f19; padding: 6px 10px; border-radius: 8px; margin-bottom: 4px; font-size: 0.72rem; border: 1px solid var(--emerald-border);">
-                <span>${i.keterangan}</span>
-                <span style="color: #34d399; font-weight: 700;">+Rp ${Number(i.nominal).toLocaleString('id-ID')}</span>
+      const renderGroup = (title, dataArr, tot, color, icon) => {
+        if(dataArr.length === 0) return '';
+        return `
+          <div style="background: rgba(0,0,0,0.2); border: 1px solid ${color}40; border-radius: var(--radius-md); padding: 10px; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-weight: 800; color: ${color}; font-size: 0.75rem; margin-bottom: 6px; border-bottom: 1px solid ${color}40; padding-bottom: 4px;">
+              <span><i class="${icon}"></i> ${title}</span>
+              <span>Rp ${tot.toLocaleString('id-ID')}</span>
+            </div>
+            ${dataArr.map(i => `
+              <div style="display: flex; justify-content: space-between; font-size: 0.7rem; margin-bottom: 4px;">
+                <span style="color: var(--text-main);">${i.keterangan} ${i.waktu ? `<span style="color:var(--text-muted); font-size:0.6rem;">(${i.waktu})</span>` : ''}</span>
+                <span style="color: ${color}; font-weight: 600;">Rp ${Number(i.nominal).toLocaleString('id-ID')}</span>
               </div>
-            `).join('') : '<div style="font-size: 0.68rem; color: var(--text-muted); font-style: italic;">Tidak ada pemasukan.</div>'}
+            `).join('')}
           </div>
+        `;
+      };
 
-          <!-- Pengeluaran -->
-          <div>
-            <div style="font-size: 0.75rem; font-weight: 800; color: #f87171; margin-bottom: 4px; text-transform: uppercase;"><i class="fa-solid fa-circle-arrow-up"></i> Pengeluaran</div>
-            ${pengItems.length ? pengItems.map(i => `
-              <div style="display: flex; justify-content: space-between; background: #0b0f19; padding: 6px 10px; border-radius: 8px; margin-bottom: 4px; font-size: 0.72rem; border: 1px solid var(--rose-border);">
-                <span>${i.keterangan}</span>
-                <span style="color: #f87171; font-weight: 700;">-Rp ${Number(i.nominal).toLocaleString('id-ID')}</span>
-              </div>
-            `).join('') : '<div style="font-size: 0.68rem; color: var(--text-muted); font-style: italic;">Tidak ada pengeluaran.</div>'}
-          </div>
-
-          <!-- Tabungan -->
-          <div>
-            <div style="font-size: 0.75rem; font-weight: 800; color: #a78bfa; margin-bottom: 4px; text-transform: uppercase;"><i class="fa-solid fa-piggy-bank"></i> Tabungan</div>
-            ${tabItems.length ? tabItems.map(i => {
-              const isAmbil = i.tipe_tabungan === 'ambil';
-              return `
-                <div style="display: flex; justify-content: space-between; background: #0b0f19; padding: 6px 10px; border-radius: 8px; margin-bottom: 4px; font-size: 0.72rem; border: 1px solid var(--violet-border);">
-                  <span>${isAmbil ? '[Ambil] ' : ''}${i.keterangan}</span>
-                  <span style="color: ${isAmbil ? '#f87171' : '#a78bfa'}; font-weight: 700;">${isAmbil ? '-' : '+'}Rp ${Number(i.nominal).toLocaleString('id-ID')}</span>
-                </div>
-              `;
-            }).join('') : '<div style="font-size: 0.68rem; color: var(--text-muted); font-style: italic;">Tidak ada tabungan.</div>'}
-          </div>
-
-          <!-- Pengeluaran Pasti -->
-          <div>
-            <div style="font-size: 0.75rem; font-weight: 800; color: #f87171; margin-bottom: 4px; text-transform: uppercase;"><i class="fa-solid fa-file-invoice-dollar"></i> Pengeluaran Pasti</div>
-            ${pastiItems.length ? pastiItems.map(i => `
-              <div style="display: flex; justify-content: space-between; background: #0b0f19; padding: 6px 10px; border-radius: 8px; margin-bottom: 4px; font-size: 0.72rem; border: 1px solid var(--rose-border);">
-                <span>${i.keterangan}</span>
-                <span style="color: #f87171; font-weight: 700;">-Rp ${Number(i.nominal).toLocaleString('id-ID')}</span>
-              </div>
-            `).join('') : '<div style="font-size: 0.68rem; color: var(--text-muted); font-style: italic;">Tidak ada pengeluaran pasti.</div>'}
-          </div>
-        </div>
+      bodyElem.innerHTML = `
+        ${renderGroup('Pemasukan', pemasukan, totPemasukan, '#34d399', 'fa-solid fa-circle-arrow-down')}
+        ${renderGroup('Pengeluaran', pengeluaran, totPengeluaran, '#f87171', 'fa-solid fa-circle-arrow-up')}
+        ${renderGroup('Tabungan', tabungan, totTabungan, '#a78bfa', 'fa-solid fa-piggy-bank')}
       `;
 
-      document.getElementById("dailyModal").classList.add("active");
-      document.body.style.overflow = "hidden";
+      modal.classList.add("active");
     }
 
     function closeDailyModal(event) {
       if (event && event.target !== document.getElementById("dailyModal")) return;
       document.getElementById("dailyModal").classList.remove("active");
-      document.body.style.overflow = "";
-      // Saat modal daftar transaksi ditutup, menampilkan kembali modal list keuangan
-      document.getElementById("dailyListModal").classList.add("active");
+      document.getElementById("dailyListModal").classList.add("active"); // Munculkan kembali modal list bulanan
     }
 
+    // Req 3: Proyeksi Bulan Depan dengan Hitungan dan Warna Khusus
     function renderNextMonthProjection() {
       const selectedMonth = document.getElementById("filterMonth").value;
-      const [year, month] = selectedMonth.split('-').map(Number);
-      
-      const nextDate = new Date(year, month, 1);
-      const nextYear = nextDate.getFullYear();
-      const nextMonthNum = nextDate.getMonth() + 1;
-      const nextMonthStr = `${nextYear}-${String(nextMonthNum).padStart(2, '0')}`;
+      if (!selectedMonth) return;
 
-      const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-      document.getElementById("labelBulanBesok").innerText = `${monthNames[nextMonthNum - 1]} ${nextYear}`;
+      const [yyyy, mm] = selectedMonth.split('-');
+      const nextDate = new Date(parseInt(yyyy, 10), parseInt(mm, 10), 1);
+      const nextMonthStr = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}`;
+      
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+      document.getElementById("labelBulanBesok").innerText = `${monthNames[nextDate.getMonth()]} ${nextDate.getFullYear()}`;
 
       let bulananMasuk = 0, bulananKeluar = 0, bulananPasti = 0, bulananTabunganNet = 0;
-      let totHutangJT = 0, totPiutangJT = 0;
-      let nextMonthPengeluaranPastiTotal = 0;
-      let nextMonthHutangTotal = 0;
-      let nextMonthPiutangTotal = 0;
+      let totHutangJTSekarang = 0, totPiutangJTSekarang = 0;
+
+      let nextMonthPengeluaranPasti = 0;
+      let nextMonthHutang = 0;
+      let nextMonthPiutang = 0;
 
       dbData.forEach(item => {
         const nom = Number(item.nominal) || 0;
-        const kat = item.kategori;
         const tgl = item.tanggal?.trim() || '';
         const jt = item.jatuh_tempo?.trim() || '';
-        const tipeTab = item.tipe_tabungan || 'tambah';
-        const tabVal = (tipeTab === 'tambah' ? nom : -nom);
-
+        
         if (tgl.startsWith(selectedMonth)) {
-          if (kat === 'pemasukan') bulananMasuk += nom;
-          else if (kat === 'pengeluaran') bulananKeluar += nom;
-          else if (kat === 'tabungan') bulananTabunganNet += tabVal;
+          if (item.kategori === 'pemasukan') bulananMasuk += nom;
+          if (item.kategori === 'pengeluaran') bulananKeluar += nom;
+          if (item.kategori === 'tabungan') bulananTabunganNet += (item.tipe_tabungan === 'tambah' ? nom : -nom);
         }
-        if (kat === 'pengeluaran_pasti') {
+        if (item.kategori === 'pengeluaran_pasti') {
           bulananPasti += nom;
+          nextMonthPengeluaranPasti += nom;
         }
-        if (kat === 'hutang' && jt.startsWith(selectedMonth) && getItemDibayar(item) < (Number(item.tenor) || 1)) {
-          totHutangJT += nom;
+        if (item.kategori === 'hutang' && jt.startsWith(selectedMonth) && getItemDibayar(item) < (Number(item.tenor) || 1)) {
+          totHutangJTSekarang += nom;
         }
-        if (kat === 'piutang' && jt.startsWith(selectedMonth) && getItemDibayar(item) < (Number(item.tenor) || 1)) {
-          totPiutangJT += nom;
+        if (item.kategori === 'piutang' && jt.startsWith(selectedMonth) && getItemDibayar(item) < (Number(item.tenor) || 1)) {
+          totPiutangJTSekarang += nom;
         }
 
-        if (kat === 'pengeluaran_pasti') {
-          nextMonthPengeluaranPastiTotal += nom;
+        // Hutang / Piutang jatuh tempo bulan besok
+        if (item.kategori === 'hutang' && jt.startsWith(nextMonthStr) && getItemDibayar(item) < (Number(item.tenor) || 1)) {
+          nextMonthHutang += nom;
         }
-        if (kat === 'hutang' && jt.startsWith(nextMonthStr) && getItemDibayar(item) < (Number(item.tenor) || 1)) {
-          nextMonthHutangTotal += nom;
-        }
-        if (kat === 'piutang' && jt.startsWith(nextMonthStr) && getItemDibayar(item) < (Number(item.tenor) || 1)) {
-          nextMonthPiutangTotal += nom;
+        if (item.kategori === 'piutang' && jt.startsWith(nextMonthStr) && getItemDibayar(item) < (Number(item.tenor) || 1)) {
+          nextMonthPiutang += nom;
         }
       });
 
-      const currentKas = bulananMasuk - bulananKeluar - bulananPasti - bulananTabunganNet - totHutangJT + totPiutangJT;
-      const nextMonthNetVal = currentKas - nextMonthPengeluaranPastiTotal - nextMonthHutangTotal + nextMonthPiutangTotal;
+      const currentKas = bulananMasuk - bulananKeluar - bulananPasti - bulananTabunganNet - totHutangJTSekarang + totPiutangJTSekarang;
+      const proyeksiKas = currentKas - nextMonthPengeluaranPasti - nextMonthHutang + nextMonthPiutang;
 
       document.getElementById("nextMonthCurrentKas").innerText = `Rp ${currentKas.toLocaleString('id-ID')}`;
-      document.getElementById("nextMonthPengeluaranPasti").innerText = `Rp ${nextMonthPengeluaranPastiTotal.toLocaleString('id-ID')}`;
-      document.getElementById("nextMonthHutang").innerText = `Rp ${nextMonthHutangTotal.toLocaleString('id-ID')}`;
-      document.getElementById("nextMonthPiutang").innerText = `Rp ${nextMonthPiutangTotal.toLocaleString('id-ID')}`;
-
-      const nextMonthNetEl = document.getElementById("nextMonthNet");
-      nextMonthNetEl.innerText = `Rp ${nextMonthNetVal.toLocaleString('id-ID')}`;
-      nextMonthNetEl.style.color = nextMonthNetVal >= 0 ? '#34d399' : '#f87171';
+      document.getElementById("nextMonthPengeluaranPasti").innerText = `Rp ${nextMonthPengeluaranPasti.toLocaleString('id-ID')}`;
+      document.getElementById("nextMonthHutang").innerText = `Rp ${nextMonthHutang.toLocaleString('id-ID')}`;
+      document.getElementById("nextMonthPiutang").innerText = `Rp ${nextMonthPiutang.toLocaleString('id-ID')}`;
+      
+      const nextMonthNetElem = document.getElementById("nextMonthNet");
+      nextMonthNetElem.innerText = `Rp ${proyeksiKas.toLocaleString('id-ID')}`;
+      
+      // Warna nominal proyeksi menyesuaikan minus/plus
+      if (proyeksiKas < 0) {
+        nextMonthNetElem.style.color = "#f87171";
+      } else {
+        nextMonthNetElem.style.color = "#34d399";
+      }
     }
 
     function renderMilestones() {
-      let totalHutangCount = 0, finishedHutangCount = 0;
-      let totalPiutangCount = 0, finishedPiutangCount = 0;
+      let hutangTotal = 0, hutangBayar = 0;
+      let piutangTotal = 0, piutangBayar = 0;
 
-      dbData.forEach(item => {
-        const tenor = Number(item.tenor) || 1;
-        const dibayar = getItemDibayar(item);
-        if (item.kategori === 'hutang') {
-          totalHutangCount += tenor;
-          finishedHutangCount += Math.min(dibayar, tenor);
-        } else if (item.kategori === 'piutang') {
-          totalPiutangCount += tenor;
-          finishedPiutangCount += Math.min(dibayar, tenor);
+      dbData.forEach(i => {
+        if (i.kategori === 'hutang') {
+          hutangTotal += Number(i.tenor) || 1;
+          hutangBayar += getItemDibayar(i);
+        }
+        if (i.kategori === 'piutang') {
+          piutangTotal += Number(i.tenor) || 1;
+          piutangBayar += getItemDibayar(i);
         }
       });
 
-      const hutangPct = totalHutangCount > 0 ? Math.round((finishedHutangCount / totalHutangCount) * 100) : 0;
-      const piutangPct = totalPiutangCount > 0 ? Math.round((finishedPiutangCount / totalPiutangCount) * 100) : 0;
+      const hutangPct = hutangTotal > 0 ? Math.round((hutangBayar / hutangTotal) * 100) : 0;
+      const piutangPct = piutangTotal > 0 ? Math.round((piutangBayar / piutangTotal) * 100) : 0;
 
       document.getElementById("milestoneHutangPct").innerText = `${hutangPct}%`;
       document.getElementById("milestoneHutangBar").style.width = `${hutangPct}%`;
-      document.getElementById("milestoneHutangText").innerText = `${finishedHutangCount} dari ${totalHutangCount} bln`;
+      document.getElementById("milestoneHutangText").innerText = `${hutangBayar} dari ${hutangTotal} bln`;
 
       document.getElementById("milestonePiutangPct").innerText = `${piutangPct}%`;
       document.getElementById("milestonePiutangBar").style.width = `${piutangPct}%`;
-      document.getElementById("milestonePiutangText").innerText = `${finishedPiutangCount} dari ${totalPiutangCount} bln`;
+      document.getElementById("milestonePiutangText").innerText = `${piutangBayar} dari ${piutangTotal} bln`;
     }
   </script>
 </body>

@@ -3,50 +3,50 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Financial Tracker Mobile - Dark Mode</title>
+  <title>Financial Tracker Mobile - Green Elegant</title>
 
   <!-- FontAwesome CDN -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    /* DESIGN SYSTEM - DARK THEME WITH EMERALD GLOW */
+    /* DESIGN SYSTEM - GREEN ELEGANT THEME */
     :root {
-      --bg-main: #090d16;
-      --card-bg: #131b2e;
-      --card-border: #1e293b;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
+      --bg-main: #06110e;
+      --card-bg: #0d1f18;
+      --card-border: #16382c;
+      --text-main: #f0fdf4;
+      --text-muted: #86efac;
       
       --primary: #10b981;
       --primary-light: rgba(16, 185, 129, 0.15);
       
       --emerald: #10b981;
-      --emerald-glow: 0 0 20px rgba(16, 185, 129, 0.35);
-      --emerald-light: rgba(16, 185, 129, 0.12);
-      --emerald-border: rgba(16, 185, 129, 0.3);
+      --emerald-glow: 0 0 25px rgba(16, 185, 129, 0.4);
+      --emerald-light: rgba(16, 185, 129, 0.15);
+      --emerald-border: rgba(16, 185, 129, 0.35);
       
       --rose: #f43f5e;
-      --rose-light: rgba(244, 63, 94, 0.12);
-      --rose-border: rgba(244, 63, 94, 0.3);
+      --rose-light: rgba(244, 63, 94, 0.15);
+      --rose-border: rgba(244, 63, 94, 0.35);
       
       --amber: #f59e0b;
-      --amber-light: rgba(245, 158, 11, 0.12);
-      --amber-border: rgba(245, 158, 11, 0.3);
+      --amber-light: rgba(245, 158, 11, 0.15);
+      --amber-border: rgba(245, 158, 11, 0.35);
       
       --sky: #0ea5e9;
-      --sky-light: rgba(14, 165, 233, 0.12);
-      --sky-border: rgba(14, 165, 233, 0.3);
+      --sky-light: rgba(14, 165, 233, 0.15);
+      --sky-border: rgba(14, 165, 233, 0.35);
 
       --violet: #8b5cf6;
-      --violet-light: rgba(139, 92, 246, 0.12);
-      --violet-border: rgba(139, 92, 246, 0.3);
+      --violet-light: rgba(139, 92, 246, 0.15);
+      --violet-border: rgba(139, 92, 246, 0.35);
 
       --radius-xl: 20px;
       --radius-lg: 14px;
       --radius-md: 10px;
 
-      --shadow-green: 0 10px 30px -5px rgba(16, 185, 129, 0.3), 0 4px 12px -2px rgba(16, 185, 129, 0.15);
-      --shadow-soft: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+      --shadow-green: 0 10px 30px -5px rgba(16, 185, 129, 0.35), 0 4px 12px -2px rgba(16, 185, 129, 0.2);
+      --shadow-soft: 0 10px 25px -5px rgba(0, 0, 0, 0.7);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -64,20 +64,20 @@
 
     /* HEADER */
     .app-header {
-      background: linear-gradient(135deg, #064e3b 0%, #022c22 100%);
+      background: linear-gradient(135deg, #022c22 0%, #011c16 100%);
       color: white;
       padding: 1.25rem 1.25rem 2rem 1.25rem;
       border-bottom-left-radius: 24px;
       border-bottom-right-radius: 24px;
       border-bottom: 1px solid var(--emerald-border);
-      box-shadow: 0 8px 25px rgba(16, 185, 129, 0.15);
+      box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
     }
     .header-top { display: flex; justify-content: space-between; align-items: center; }
     .header-title h1 { font-size: 1.15rem; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #34d399; }
     .header-title p { font-size: 0.72rem; color: #a7f3d0; margin-top: 2px; }
     
     .sync-btn {
-      background: rgba(16, 185, 129, 0.15);
+      background: rgba(16, 185, 129, 0.2);
       backdrop-filter: blur(8px);
       border: 1px solid var(--emerald);
       color: #34d399;
@@ -126,18 +126,18 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: #0b0f19;
+      background: #040e0b;
       padding: 0.6rem 1rem;
       border-radius: var(--radius-lg);
       border: 1px solid var(--card-border);
       margin-bottom: 0.75rem;
     }
     .filter-box label { font-size: 0.75rem; font-weight: 700; color: #a7f3d0; display: flex; align-items: center; gap: 6px; }
-    .filter-box input[type="month"] { width: auto; padding: 4px 8px; font-size: 0.75rem; background: #131b2e; border: 1px solid var(--emerald-border); color: #34d399; font-weight: 700; }
+    .filter-box input[type="month"] { width: auto; padding: 4px 8px; font-size: 0.75rem; background: var(--card-bg); border: 1px solid var(--emerald-border); color: #34d399; font-weight: 700; }
 
     /* NET BALANCE BANNER */
     .net-banner {
-      background: linear-gradient(145deg, #131b2e 0%, #0d1322 100%);
+      background: linear-gradient(145deg, #0d1f18 0%, #081410 100%);
       padding: 1.35rem;
       border-radius: var(--radius-xl);
       text-align: center;
@@ -146,7 +146,7 @@
       position: relative;
       overflow: hidden;
     }
-    .net-amount { font-size: 1.65rem; font-weight: 900; margin: 4px 0 6px 0; letter-spacing: -0.03em; color: #ffffff; text-shadow: 0 0 12px rgba(255,255,255,0.2); }
+    .net-amount { font-size: 1.65rem; font-weight: 900; margin: 4px 0 6px 0; letter-spacing: -0.03em; color: #ffffff; text-shadow: 0 0 12px rgba(16,185,129,0.3); }
     
     .status-badge {
       display: inline-block;
@@ -162,7 +162,7 @@
     .badge-over { background: var(--rose-light); color: #f87171; border: 1px solid var(--rose-border); }
 
     /* STANDALONE CATEGORY CARDS */
-    .cat-card { border-radius: var(--radius-xl); padding: 1.15rem; background: #111726; border: 1px solid var(--card-border); box-shadow: var(--shadow-soft); }
+    .cat-card { border-radius: var(--radius-xl); padding: 1.15rem; background: #0a1813; border: 1px solid var(--card-border); box-shadow: var(--shadow-soft); }
     .cat-pemasukan { border-color: var(--emerald-border); }
     .cat-pengeluaran { border-color: var(--rose-border); }
     .cat-hutang { border-color: var(--amber-border); }
@@ -182,7 +182,7 @@
       justify-content: space-between;
       align-items: center;
       padding: 0.75rem 0.85rem;
-      background: #0b0f19;
+      background: #040e0b;
       border: 1px solid var(--card-border);
       border-radius: var(--radius-md);
       cursor: pointer;
@@ -190,15 +190,15 @@
     }
     .daily-item-row:hover {
       border-color: var(--emerald-border);
-      background: #131d33;
+      background: #0d231b;
     }
 
     /* MODAL STYLES */
     .modal-backdrop {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(5px);
+      background: rgba(2, 10, 8, 0.8);
+      backdrop-filter: blur(6px);
       display: none;
       justify-content: center;
       align-items: center;
@@ -223,16 +223,16 @@
 
     /* INPUTS & BUTTONS */
     .input-group { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
-    .dynamic-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; background: #0b0f19; padding: 8px; border-radius: var(--radius-md); border: 1px solid #1e293b; }
+    .dynamic-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; background: #040e0b; padding: 8px; border-radius: var(--radius-md); border: 1px solid var(--card-border); }
     
     input, select {
       width: 100%;
       font-size: 0.75rem;
       padding: 0.55rem 0.65rem;
-      border: 1px solid #2a374e;
+      border: 1px solid var(--card-border);
       border-radius: var(--radius-md);
       outline: none;
-      background: #131b2e;
+      background: var(--card-bg);
       color: var(--text-main);
       transition: all 0.2s;
     }
@@ -263,7 +263,7 @@
     .btn-amber { background: #d97706; color: white; box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3); }
     .btn-sky { background: #0284c7; color: white; box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3); }
     .btn-violet { background: #7c3aed; color: white; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3); }
-    .btn-dark { background: #1e293b; color: white; border: 1px solid #334155; }
+    .btn-dark { background: #112920; color: white; border: 1px solid var(--card-border); }
     .btn-main-save {
       background: linear-gradient(135deg, #10b981 0%, #059669 100%);
       color: #ffffff;
@@ -276,8 +276,8 @@
     }
     .btn-sm { width: auto; padding: 4px 10px; font-size: 0.7rem; border-radius: 8px; }
     .btn-icon-sm {
-      width: 26px;
-      height: 26px;
+      width: 28px;
+      height: 28px;
       padding: 0;
       border-radius: 50%;
       display: inline-flex;
@@ -293,7 +293,7 @@
     .btn-remove {
       background: none;
       border: none;
-      color: #64748b;
+      color: var(--text-muted);
       font-size: 1.1rem;
       cursor: pointer;
       padding: 0 4px;
@@ -301,63 +301,66 @@
     }
     .btn-remove:hover { color: var(--rose); }
 
-    /* DEBT / FIXED EXPENSE CARDS */
+    /* MOBILE-OPTIMIZED DEBT / RECEIVABLE PAYMENT CARDS */
     .debt-pay-container {
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
-      max-height: 260px;
+      gap: 0.75rem;
+      max-height: 280px;
       overflow-y: auto;
       padding-right: 2px;
       margin-bottom: 0.75rem;
     }
-    .debt-pay-container::-webkit-scrollbar { width: 4px; }
+    .debt-pay-container::-webkit-scrollbar { width: 5px; }
     .debt-pay-container::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 4px; }
 
     .debt-item-card {
       display: flex;
       align-items: center;
-      gap: 10px;
-      background: #0b0f19;
-      border: 1px solid #1e293b;
-      border-radius: var(--radius-md);
-      padding: 0.65rem 0.85rem;
+      gap: 12px;
+      background: #040e0b;
+      border: 1.5px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 0.85rem 1rem;
       cursor: pointer;
       transition: all 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
     }
-    .debt-item-card:hover { border-color: var(--card-border); background: #0e1526; }
+    .debt-item-card:hover { border-color: var(--emerald-border); background: #091c15; }
     
     .debt-item-card.selected-hutang {
-      background: rgba(245, 158, 11, 0.08);
+      background: rgba(245, 158, 11, 0.12);
       border-color: var(--amber);
-      box-shadow: 0 0 12px rgba(245, 158, 11, 0.15);
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
     }
     .debt-item-card.selected-piutang {
-      background: rgba(14, 165, 233, 0.08);
+      background: rgba(14, 165, 233, 0.12);
       border-color: var(--sky);
-      box-shadow: 0 0 12px rgba(14, 165, 233, 0.15);
+      box-shadow: 0 0 15px rgba(14, 165, 233, 0.2);
     }
     .debt-item-card.selected-pengeluaran {
-      background: rgba(244, 63, 94, 0.08);
+      background: rgba(244, 63, 94, 0.12);
       border-color: var(--rose);
-      box-shadow: 0 0 12px rgba(244, 63, 94, 0.15);
+      box-shadow: 0 0 15px rgba(244, 63, 94, 0.2);
     }
 
+    /* ENHANCED MOBILE CHECKBOX */
     .debt-checkbox {
-      width: 22px;
-      height: 22px;
-      border-radius: 6px;
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
       cursor: pointer;
       flex-shrink: 0;
+      transform: scale(1.1);
     }
     .debt-checkbox.chk-amber { accent-color: var(--amber); }
     .debt-checkbox.chk-sky { accent-color: var(--sky); }
     .debt-checkbox.chk-rose { accent-color: var(--rose); }
 
     .debt-info { flex: 1; min-width: 0; }
-    .debt-info-title { font-size: 0.75rem; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .debt-info-meta { font-size: 0.62rem; color: var(--text-muted); display: flex; gap: 8px; margin-top: 2px; }
-    .debt-info-amount { font-size: 0.78rem; font-weight: 800; text-align: right; flex-shrink: 0; }
+    .debt-info-title { font-size: 0.8rem; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .debt-info-meta { font-size: 0.68rem; color: var(--text-muted); display: flex; gap: 8px; margin-top: 3px; }
+    .debt-info-amount { font-size: 0.85rem; font-weight: 800; text-align: right; flex-shrink: 0; }
     
     .debt-actions-bar {
       display: flex;
@@ -369,8 +372,8 @@
     
     .debt-segmented {
       display: inline-flex;
-      background: #0f172a;
-      border: 1px solid #334155;
+      background: #040e0b;
+      border: 1px solid var(--card-border);
       border-radius: 999px;
       overflow: hidden;
       box-shadow: 0 2px 8px rgba(0,0,0,.25);
@@ -378,36 +381,36 @@
     .debt-segmented .seg-btn {
       border: none;
       background: transparent;
-      color: #cbd5e1;
+      color: var(--text-muted);
       padding: 8px 14px;
       font-size: .72rem;
       font-weight: 700;
       cursor: pointer;
     }
-    .debt-segmented .seg-btn:hover { background: #1e293b; }
-    .debt-segmented .seg-btn:first-child { border-right: 1px solid #334155; }
+    .debt-segmented .seg-btn:hover { background: #0d231b; color: var(--text-main); }
+    .debt-segmented .seg-btn:first-child { border-right: 1px solid var(--card-border); }
 
     .debt-selection-summary {
-      background: #0b0f19;
-      border: 1px solid #1e293b;
+      background: #040e0b;
+      border: 1px solid var(--card-border);
       border-radius: var(--radius-md);
-      padding: 0.6rem 0.85rem;
+      padding: 0.75rem 1rem;
       margin-bottom: 0.75rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.72rem;
+      font-size: 0.75rem;
       border-width: 2px;
     }
 
     /* TABLE */
     .table-responsive { overflow-x: auto; margin-top: 0.5rem; }
     table { width: 100%; border-collapse: collapse; font-size: 0.72rem; text-align: left; }
-    th { color: var(--text-muted); padding: 0.6rem 0.3rem; border-bottom: 1px solid #1e293b; font-weight: 700; }
-    td { padding: 0.6rem 0.3rem; border-bottom: 1px solid #161f30; color: var(--text-main); }
+    th { color: var(--text-muted); padding: 0.6rem 0.3rem; border-bottom: 1px solid var(--card-border); font-weight: 700; }
+    td { padding: 0.6rem 0.3rem; border-bottom: 1px solid #0c241c; color: var(--text-main); }
 
     /* TAGS */
-    .tag { padding: 2px 5px; font-size: 0.6rem; border-radius: 6px; font-weight: 700; text-transform: uppercase; display: inline-block; }
+    .tag { padding: 2px 6px; font-size: 0.6rem; border-radius: 6px; font-weight: 700; text-transform: uppercase; display: inline-block; }
     .tag-pemasukan { background: var(--emerald-light); color: #34d399; border: 1px solid var(--emerald-border); }
     .tag-pengeluaran { background: var(--rose-light); color: #f87171; border: 1px solid var(--rose-border); }
     .tag-hutang { background: var(--amber-light); color: #fbbf24; border: 1px solid var(--amber-border); }
@@ -427,14 +430,14 @@
       transform: translateX(-50%);
       width: 100%;
       max-width: 480px;
-      background: #0b0f19;
+      background: #040e0b;
       border-top: 1px solid var(--emerald-border);
       display: flex;
       justify-content: space-around;
       align-items: center;
       padding: 0.5rem 0 0.8rem 0;
       z-index: 1000;
-      box-shadow: 0 -5px 25px rgba(0,0,0,0.5);
+      box-shadow: 0 -5px 25px rgba(0,0,0,0.6);
       border-top-left-radius: 20px;
       border-top-right-radius: 20px;
     }
@@ -505,7 +508,7 @@
         <!-- KAS PRIBADI & TABUNGAN SIDE BY SIDE -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: stretch; margin: 0.5rem 0;">
           <!-- Kiri: Kas Pribadi -->
-          <div id="kasPribadiCard" style="background: rgba(16, 185, 129, 0.1); border: 1px solid var(--emerald-border); border-radius: var(--radius-md); padding: 10px; text-align: left; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.3s;">
+          <div id="kasPribadiCard" style="background: rgba(16, 185, 129, 0.12); border: 1px solid var(--emerald-border); border-radius: var(--radius-md); padding: 10px; text-align: left; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.3s;">
             <div>
               <div id="kasPribadiTitle" style="font-size: 0.68rem; font-weight: 800; color: #a7f3d0; text-transform: uppercase; display: flex; align-items: center; gap: 4px; margin-bottom: 2px;">
                 <i class="fa-solid fa-wallet" id="kasPribadiIcon"></i> Kas Pribadi
@@ -518,7 +521,7 @@
           </div>
 
           <!-- Kanan: Tabungan -->
-          <div style="background: rgba(139, 92, 246, 0.1); border: 1px solid var(--violet-border); border-radius: var(--radius-md); padding: 10px; text-align: left; display: flex; flex-direction: column; justify-content: space-between;">
+          <div style="background: rgba(139, 92, 246, 0.12); border: 1px solid var(--violet-border); border-radius: var(--radius-md); padding: 10px; text-align: left; display: flex; flex-direction: column; justify-content: space-between;">
             <div>
               <div style="font-size: 0.68rem; font-weight: 800; color: #c4b5fd; text-transform: uppercase; display: flex; align-items: center; gap: 4px; margin-bottom: 2px;">
                 <i class="fa-solid fa-piggy-bank"></i> Tabungan
@@ -530,7 +533,7 @@
         </div>
 
         <!-- CARD MILESTONE PELUNASAN -->
-        <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 10px; text-align: left; margin-top: 0.5rem;">
+        <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 10px; text-align: left; margin-top: 0.5rem;">
           <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
             <i class="fa-solid fa-flag-checkered" style="color: var(--primary);"></i> Milestone Pelunasan
           </div>
@@ -541,7 +544,7 @@
                 <span>Progres Hutang</span>
                 <span id="milestoneHutangPct">0%</span>
               </div>
-              <div style="width: 100%; background: #1e293b; height: 6px; border-radius: 3px; overflow: hidden;">
+              <div style="width: 100%; background: #040e0b; height: 6px; border-radius: 3px; overflow: hidden;">
                 <div id="milestoneHutangBar" style="background: #f59e0b; width: 0%; height: 100%; transition: width 0.3s;"></div>
               </div>
               <div style="font-size: 0.58rem; color: var(--text-muted); margin-top: 4px; text-align: right;" id="milestoneHutangText">0 dari 0 bln</div>
@@ -553,7 +556,7 @@
                 <span>Progres Piutang</span>
                 <span id="milestonePiutangPct">0%</span>
               </div>
-              <div style="width: 100%; background: #1e293b; height: 6px; border-radius: 3px; overflow: hidden;">
+              <div style="width: 100%; background: #040e0b; height: 6px; border-radius: 3px; overflow: hidden;">
                 <div id="milestonePiutangBar" style="background: #0ea5e9; width: 0%; height: 100%; transition: width 0.3s;"></div>
               </div>
               <div style="font-size: 0.58rem; color: var(--text-muted); margin-top: 4px; text-align: right;" id="milestonePiutangText">0 dari 0 bln</div>
@@ -565,9 +568,9 @@
         <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 0.85rem; border-top: 1px solid var(--emerald-border); padding-top: 0.85rem;">
           
           <!-- CARD INFORMASI TOTAL PENGELUARAN PASTI -->
-          <div style="background: rgba(244, 63, 94, 0.08); border: 1px solid var(--rose-border); border-radius: var(--radius-md); padding: 10px; display: flex; justify-content: space-between; align-items: center; text-align: left;">
+          <div style="background: rgba(244, 63, 94, 0.1); border: 1px solid var(--rose-border); border-radius: var(--radius-md); padding: 10px; display: flex; justify-content: space-between; align-items: center; text-align: left;">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <div style="width: 30px; height: 30px; background: rgba(244, 63, 94, 0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #f87171; flex-shrink: 0;">
+              <div style="width: 30px; height: 30px; background: rgba(244, 63, 94, 0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #f87171; flex-shrink: 0;">
                 <i class="fa-solid fa-file-invoice-dollar"></i>
               </div>
               <div>
@@ -584,7 +587,7 @@
           <!-- Baris 1: Harian & Bulanan -->
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
             <!-- Box Harian -->
-            <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-md); padding: 10px; text-align: left;">
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 10px; text-align: left;">
               <div style="font-size: 0.65rem; font-weight: 700; color: #a7f3d0; margin-bottom: 6px; text-transform: uppercase;"><i class="fa-solid fa-calendar-day"></i> Harian</div>
               <div style="font-size: 0.65rem; color: var(--text-muted); display: flex; justify-content: space-between;">
                 <span>Masuk:</span> <span id="harianMasuk" style="color: #34d399; font-weight: 700;">Rp 0</span>
@@ -595,13 +598,13 @@
               <div style="font-size: 0.65rem; color: var(--text-muted); display: flex; justify-content: space-between; margin-bottom: 3px;">
                 <span>Tabungan:</span> <span id="harianTabungan" style="color: #a78bfa; font-weight: 700;">Rp 0</span>
               </div>
-              <div style="font-size: 0.68rem; font-weight: 800; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 5px; margin-top: 5px; display: flex; justify-content: space-between;">
+              <div style="font-size: 0.68rem; font-weight: 800; border-top: 1px dashed var(--card-border); padding-top: 5px; margin-top: 5px; display: flex; justify-content: space-between;">
                 <span>Net:</span> <span id="harianNet" style="color: #fff;">Rp 0</span>
               </div>
             </div>
 
             <!-- Box Bulanan -->
-            <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-md); padding: 10px; text-align: left;">
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 10px; text-align: left;">
               <div style="font-size: 0.65rem; font-weight: 700; color: #a7f3d0; margin-bottom: 6px; text-transform: uppercase;"><i class="fa-solid fa-calendar-days"></i> Bulanan</div>
               <div style="font-size: 0.65rem; color: var(--text-muted); display: flex; justify-content: space-between;">
                 <span>Masuk:</span> <span id="bulananMasuk" style="color: #34d399; font-weight: 700;">Rp 0</span>
@@ -612,7 +615,7 @@
               <div style="font-size: 0.65rem; color: var(--text-muted); display: flex; justify-content: space-between; margin-bottom: 3px;">
                 <span>Tabungan:</span> <span id="bulananTabungan" style="color: #a78bfa; font-weight: 700;">Rp 0</span>
               </div>
-              <div style="font-size: 0.68rem; font-weight: 800; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 5px; margin-top: 5px; display: flex; justify-content: space-between;">
+              <div style="font-size: 0.68rem; font-weight: 800; border-top: 1px dashed var(--card-border); padding-top: 5px; margin-top: 5px; display: flex; justify-content: space-between;">
                 <span>Net:</span> <span id="bulananNet" style="color: #fff;">Rp 0</span>
               </div>
             </div>
@@ -646,7 +649,7 @@
         </div>
 
         <!-- PROYEKSI BULAN DEPAN -->
-        <div style="margin-top: 0.85rem; background: rgba(0,0,0,0.3); border: 1px solid var(--sky-border); border-radius: var(--radius-md); padding: 10px; text-align: left;">
+        <div style="margin-top: 0.85rem; background: rgba(0,0,0,0.35); border: 1px solid var(--sky-border); border-radius: var(--radius-md); padding: 10px; text-align: left;">
           <div style="font-size: 0.7rem; font-weight: 800; color: #38bdf8; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
             <i class="fa-solid fa-calendar-days"></i> Proyeksi Bulan Depan (<span id="labelBulanBesok">-</span>)
           </div>
@@ -662,7 +665,7 @@
           <div style="font-size: 0.68rem; color: var(--text-muted); display: flex; justify-content: space-between; margin-bottom: 4px;">
             <span>Piutang JT Besok:</span> <span id="nextMonthPiutang" style="color: #38bdf8; font-weight: 700;">Rp 0</span>
           </div>
-          <div style="font-size: 0.72rem; font-weight: 800; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 5px; margin-top: 4px; display: flex; justify-content: space-between;">
+          <div style="font-size: 0.72rem; font-weight: 800; border-top: 1px dashed var(--card-border); padding-top: 5px; margin-top: 4px; display: flex; justify-content: space-between;">
             <span>Proyeksi Kas:</span> <span id="nextMonthNet" style="color: #fff;">Rp 0</span>
           </div>
         </div>
@@ -803,7 +806,7 @@
     </div>
   </div>
 
-  <!-- MODAL PEMBAYARAN HUTANG / PENERIMAAN PIUTANG -->
+  <!-- MODAL PEMBAYARAN HUTANG / PENERIMAAN PIUTANG (MOBILE OPTIMIZED CHECKBOX) -->
   <div id="debtPayModal" class="modal-backdrop" onclick="closeDebtPayModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="card-header" style="margin-bottom: 0;">
@@ -878,10 +881,14 @@
 
   <script>
     const SHEET_API_URL = "https://sheetdb.io/api/v1/hsoliss420awl";
-    const DRAFT_STORAGE_KEY = "financial_inputs_draft_v4"; 
+    const DRAFT_STORAGE_KEY = "financial_inputs_draft_v5"; 
 
     let dbData = [];
     let confirmCallback = null;
+    
+    // DUPLICATE PREVENTION LOCK FLAGS
+    let isSubmittingData = false;
+    let isProcessingPayment = false;
 
     document.addEventListener("DOMContentLoaded", () => {
       const now = new Date();
@@ -889,7 +896,7 @@
 
       loadDraftInputs();
 
-      const localCached = localStorage.getItem("cached_financial_data_v5");
+      const localCached = localStorage.getItem("cached_financial_data_v6");
       if (localCached) {
         dbData = JSON.parse(localCached);
         renderAll();
@@ -1015,7 +1022,7 @@
               <span style="color: var(--text-muted);">Pilih item yang ingin dihapus</span>
               <div class="debt-segmented">
                 <button type="button" onclick="toggleSelectAllFixedModal(true)" class="seg-btn"><i class="fa-solid fa-check-double"></i> Pilih Semua</button>
-                <button type="button" onclick="toggleSelectAllFixedModal(false)" class="seg-btn"><i class="fa-solid fa-xmark"></i> Batal Pilih</button>
+                <button type="button" onclick="toggleSelectAllFixedModal(false)" class="seg-btn"><i class="fa-solid fa-xmark"></i> Batal</button>
               </div>
             </div>
 
@@ -1112,7 +1119,7 @@
 
           try {
             await Promise.all(promises);
-            localStorage.setItem("cached_financial_data_v5", JSON.stringify(dbData));
+            localStorage.setItem("cached_financial_data_v6", JSON.stringify(dbData));
             closeFixedExpenseModal();
             renderAll();
             hideLoading();
@@ -1249,7 +1256,7 @@
       document.body.style.overflow = "";
     }
 
-    /* MODAL DEBT PAY */
+    /* MODAL DEBT PAY (MOBILE ENHANCED CHECKBOX & TOUCH TARGET) */
     function openDebtPayModal(type) {
       const modal = document.getElementById("debtPayModal");
       const titleElem = document.getElementById("debtPayModalTitle");
@@ -1266,10 +1273,10 @@
       } else {
         bodyElem.innerHTML = `
           <div class="debt-actions-bar">
-            <span style="color: var(--text-muted);">Urut: Jatuh Tempo Terdekat</span>
+            <span style="color: var(--text-muted);">Ketuk kartu untuk memilih</span>
             <div class="debt-segmented">
-              <button type="button" onclick="toggleSelectAllDebtsModal('${type}', true)" class="seg-btn"><i class="fa-solid fa-check-double"></i> Pilih Semua</button>
-              <button type="button" onclick="toggleSelectAllDebtsModal('${type}', false)" class="seg-btn"><i class="fa-solid fa-xmark"></i> Batal Pilih</button>
+              <button type="button" onclick="toggleSelectAllDebtsModal('${type}', true)" class="seg-btn"><i class="fa-solid fa-check-double"></i> Semua</button>
+              <button type="button" onclick="toggleSelectAllDebtsModal('${type}', false)" class="seg-btn"><i class="fa-solid fa-xmark"></i> Batal</button>
             </div>
           </div>
 
@@ -1279,7 +1286,7 @@
               const tenor = Number(item.tenor) || 1;
               return `
                 <div class="debt-item-card" onclick="toggleDebtSelectionModal(this, '${type}')">
-                  <input type="checkbox" class="debt-checkbox ${isHutang ? 'chk-amber' : 'chk-sky'}" value="${item.id}" data-nominal="${item.nominal}" onchange="updateModalDebtSelectionSummary('${type}')">
+                  <input type="checkbox" class="debt-checkbox ${isHutang ? 'chk-amber' : 'chk-sky'}" value="${item.id}" data-nominal="${item.nominal}" onchange="updateModalDebtSelectionSummary('${type}')" onclick="event.stopPropagation()">
                   <div class="debt-info">
                     <div class="debt-info-title"><span class="tag ${isHutang ? 'tag-hutang' : 'tag-piutang'}">${isHutang ? 'Hutang' : 'Piutang'}</span> ${item.keterangan}</div>
                     <div class="debt-info-meta">
@@ -1321,7 +1328,7 @@
 
     function toggleDebtSelectionModal(cardElem, categoryType) {
       const checkbox = cardElem.querySelector('input[type="checkbox"]');
-      if (event.target !== checkbox) checkbox.checked = !checkbox.checked;
+      checkbox.checked = !checkbox.checked;
       
       const selectedClass = categoryType === 'hutang' ? 'selected-hutang' : 'selected-piutang';
       cardElem.classList.toggle(selectedClass, checkbox.checked);
@@ -1348,7 +1355,10 @@
       if (totalEl) totalEl.innerText = `Rp ${totalSum.toLocaleString('id-ID')}`;
     }
 
+    /* DUPLICATE PREVENTION FOR BATCH PAYMENT */
     async function processBatchPaymentModal(categoryType) {
+      if (isProcessingPayment) return; // Mencegah klik ganda
+
       const checkedBoxes = document.querySelectorAll(`#modalDebtPayContainer .debt-checkbox:checked`);
       if (checkedBoxes.length === 0) {
         alert(`Pilih minimal 1 ${categoryType === 'hutang' ? 'hutang' : 'piutang'} yang akan diproses!`);
@@ -1360,6 +1370,7 @@
         "Konfirmasi Tindakan",
         `Apakah Anda yakin ingin memproses ${labelName} untuk ${checkedBoxes.length} item terpilih?`,
         async () => {
+          isProcessingPayment = true;
           showLoading("Sedang memproses pembayaran...");
           const todayDate = new Date();
           todayDate.setMinutes(todayDate.getMinutes() - todayDate.getTimezoneOffset());
@@ -1383,7 +1394,7 @@
 
             const isHutang = item.kategori === 'hutang';
             autoTransactions.push({
-              id: Date.now().toString() + Math.floor(Math.random() * 1000) + autoTransactions.length,
+              id: Date.now().toString() + Math.floor(Math.random() * 10000) + autoTransactions.length,
               kategori: isHutang ? 'pengeluaran' : 'pemasukan',
               keterangan: `${isHutang ? 'Bayar Hutang' : 'Terima Piutang'}: ${item.keterangan} (${currentDibayar}/${totalTenor})`,
               nominal: payNominal,
@@ -1421,7 +1432,7 @@
             }
 
             await Promise.all(promises);
-            localStorage.setItem("cached_financial_data_v5", JSON.stringify(dbData));
+            localStorage.setItem("cached_financial_data_v6", JSON.stringify(dbData));
             closeDebtPayModal();
             renderAll();
             hideLoading();
@@ -1429,6 +1440,8 @@
           } catch (err) {
             hideLoading();
             alert("Terjadi kesalahan sistem saat sinkronisasi: " + err.message);
+          } finally {
+            isProcessingPayment = false;
           }
         }
       );
@@ -1632,7 +1645,7 @@
         if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
         
         dbData = await res.json();
-        localStorage.setItem("cached_financial_data_v5", JSON.stringify(dbData));
+        localStorage.setItem("cached_financial_data_v6", JSON.stringify(dbData));
         
         status.innerText = "Tersinkronisasi dengan Google Sheets!";
         renderAll();
@@ -1642,7 +1655,6 @@
         hideLoading();
         showSuccessModal("Load data berhasil!");
 
-        // Non-aktifkan tombol jika berhasil load data
         btnSync.disabled = true;
         btnSync.style.opacity = "0.6";
         btnSync.style.cursor = "not-allowed";
@@ -1657,7 +1669,10 @@
       }
     }
 
+    /* DUPLICATE PREVENTION FOR SAVING ALL DATA */
     async function saveAllData() {
+      if (isSubmittingData) return; // Kunci ganda untuk cegah klik berulang
+
       const categories = ['pemasukan', 'pengeluaran', 'pengeluaran_pasti', 'tabungan', 'hutang', 'piutang'];
       const newEntries = [];
       const nowTime = new Date();
@@ -1675,7 +1690,7 @@
 
           if (ket && nom) {
             newEntries.push({
-              id: Date.now().toString() + Math.floor(Math.random() * 1000),
+              id: Date.now().toString() + Math.floor(Math.random() * 10000) + newEntries.length,
               kategori,
               keterangan: ket,
               nominal: Number(nom),
@@ -1695,6 +1710,7 @@
         return;
       }
 
+      isSubmittingData = true;
       const status = document.getElementById("syncStatus");
       const btnSave = document.getElementById("btnSaveAll");
       
@@ -1712,7 +1728,7 @@
 
         if (res.ok) {
           dbData.push(...newEntries);
-          localStorage.setItem("cached_financial_data_v5", JSON.stringify(dbData));
+          localStorage.setItem("cached_financial_data_v6", JSON.stringify(dbData));
           localStorage.removeItem(DRAFT_STORAGE_KEY);
           
           categories.forEach(kat => {
@@ -1732,6 +1748,7 @@
         alert("Gagal menyimpan ke SheetDB.\n\nDetail: " + err.message);
         status.innerText = "Gagal menyimpan data ke Cloud.";
       } finally {
+        isSubmittingData = false;
         btnSave.disabled = false;
         btnSave.style.opacity = "1";
       }
@@ -1754,7 +1771,7 @@
           const autoKeterangan = `[Auto] ${fixed.keterangan}`;
           
           autoTransactions.push({
-            id: Date.now().toString() + Math.floor(Math.random() * 1000) + autoTransactions.length,
+            id: Date.now().toString() + Math.floor(Math.random() * 10000) + autoTransactions.length,
             kategori: 'pengeluaran',
             keterangan: autoKeterangan,
             nominal: Number(fixed.nominal),
@@ -1803,7 +1820,7 @@
             if (promises.length > 0) {
                 await Promise.all(promises);
             }
-            localStorage.setItem("cached_financial_data_v5", JSON.stringify(dbData));
+            localStorage.setItem("cached_financial_data_v6", JSON.stringify(dbData));
             renderAll();
          } catch (err) {
             console.error("Gagal menyimpan auto pengeluaran pasti", err);
@@ -1874,7 +1891,7 @@
       const statusBadge = document.getElementById("statusBadge");
 
       if (netKas < 0) {
-        kasCard.style.background = "rgba(244, 63, 94, 0.1)";
+        kasCard.style.background = "rgba(244, 63, 94, 0.12)";
         kasCard.style.borderColor = "var(--rose-border)";
         kasTitle.style.color = "#fca5a5";
         kasIcon.style.color = "#f87171";
@@ -1883,7 +1900,7 @@
         statusBadge.className = "status-badge badge-over";
         statusBadge.innerText = "DEFISIT";
       } else {
-        kasCard.style.background = "rgba(16, 185, 129, 0.1)";
+        kasCard.style.background = "rgba(16, 185, 129, 0.12)";
         kasCard.style.borderColor = "var(--emerald-border)";
         kasTitle.style.color = "#a7f3d0";
         kasIcon.style.color = "#34d399";
